@@ -1,5 +1,9 @@
 # Principles of Workflow Engines
 
+Every self-respecting developer has written a workflow engine in their life.  I have a lot of self respect :)
+
+I'ld love to collect my knowledge on design principles for workflow engines.  This repo is a scratchpad in which I want to start collecting those ideas.  It might end up as a series of blog posts or a book.  But at least it's going to start as a repo.
+
 * Minimal workflow engine
   * Basic execution
   * Automatic
