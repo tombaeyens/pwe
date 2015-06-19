@@ -14,9 +14,19 @@ I'ld love to collect my knowledge on design principles for workflow engines.  Th
 * Workflow instance models
   * Activity instances
   * Tokens
+  * Transaction log
+  * Combining transaction logs with the other approaches
+* Event based alternative
+  * TODO explore
 * Persistence
   * Store, load and resume execution
   * Dirty checking
+  * Analytics
+    * Depends on the data store
+    * Often, runtime data structures are not optimal
+    * Duplication  
+    * Can be based on listener or transaction logs
+  * Archiving
 * Concurrency
   * Threads vs process concurrency
   * Asynchronous continuations
@@ -28,6 +38,15 @@ I'ld love to collect my knowledge on design principles for workflow engines.  Th
   * Serialization
   * Extracting behavior into an interface
   * Dynamic pluggability
+* Data
+  * Type pluggability
+  * Data in the workflow model
+    * Configuration of pluggable activities
+  * Scoped contexts
+  * Data vs references
+  * Expression resolving
+    * Expression resolving of referenced objects
+  * Data unavailability blocking execution 
 * Human tasks
 * Scripts
 * Http requests
