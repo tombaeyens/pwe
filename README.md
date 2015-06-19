@@ -2,24 +2,46 @@
 
 Every self-respecting developer has written a workflow engine in their life.  I have a lot of self respect :)
 
-I'ld love to collect my knowledge on design principles for workflow engines.  This repo is a scratchpad in which I want to start collecting those ideas.  It might end up as a series of blog posts or a book.  But at least it's going to start as a repo.
+This is an effort to collect my knowledge on design principles for workflow engines.  This repo is a scratchpad 
+in which I want to start collecting those ideas.  It might end up as a series of blog posts or a book.  But at 
+least it's going to start as a repo.
+
+# The basics 
 
 * Minimal workflow engine
   * Basic execution
   * Automatic
   * Wait states
+* Persistence
+  * Store, load and resume execution
+* Concurrency
+  * Observation: The thread of the client is used to execute (=interpret) the workflow
+  * Threads vs process concurrency
+  * Asynchronous continuations
+
+# Extending the basics
+
 * Workflow models
   * Composition
   * Graph structure
+  * Activity configuration  
 * Workflow instance models
   * Activity instances
   * Tokens
   * Transaction log
   * Combining transaction logs with the other approaches
-* Event based alternative
-  * TODO explore
-* Persistence
-  * Store, load and resume execution
+  * Copying the workflow structure in the workflow instance
+* Data
+
+# Examples
+  
+* Human tasks
+* Scripts
+* Http requests
+    
+# Advanced
+
+* Advanced persistence
   * Dirty checking
   * Analytics
     * Depends on the data store
@@ -27,12 +49,9 @@ I'ld love to collect my knowledge on design principles for workflow engines.  Th
     * Duplication  
     * Can be based on listener or transaction logs
   * Archiving
-* Concurrency
-  * Threads vs process concurrency
-  * Asynchronous continuations
 * Tail recursion (call stack) vs atomic operations
   * Events and persistence
-* Activities
+* Activities advanced
   * Configuration
   * Persistence
   * Serialization
@@ -47,6 +66,6 @@ I'ld love to collect my knowledge on design principles for workflow engines.  Th
   * Expression resolving
     * Expression resolving of referenced objects
   * Data unavailability blocking execution 
-* Human tasks
-* Scripts
-* Http requests
+* Event based alternative
+  * TODO explore
+  

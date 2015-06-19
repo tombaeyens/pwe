@@ -12,20 +12,44 @@ public class ExecutionBasicsTest {
 
   @Test
   public void testSequentialAutomaticExecution() {
+    // +-------------+   +-------------+
+    // |     a       |-->|      b      |
+    // | (Automatic) |   | (Automatic) |
+    // +-------------+   +-------------+
     Workflow workflow = new Workflow()
       .activity(new Automatic("a"))
       .activity(new Automatic("b"))
       .transition("a", "b");
     
     WorkflowInstance workflowInstance = new WorkflowInstance(workflow);
+
+    // When we invoke start(), only activity 'a' will be started 
+    // because 'b' has an incoming transition and is therefor not 
+    // considered a start activity.
+    // Activity 'a' is of type Automatic, which means it will 
+    // log a message and propagate the execution immediately by 
+    // invoking ActivityInstance.end.  Ending activity 'a' means 
+    // all outgoing transitions are taken.  Therefor activity 'b' is 
+    // executed.  Activity 'b' then ends, but it has no outgoing
+    // transitions so the execution flow stops there.
+    // Only then the start() method returns.
     workflowInstance.start();
     
+    // We now check that there are no activity instances open.
+    // An activity instance is open when it is ended (ActivityInstance.end!=null)
     assertWaiting(workflowInstance);
+    
+    // We also check that there are 2 ended activity instances, one for 
+    // activity 'a' and one for activity 'b'
     assertCompleted(workflowInstance, "a", "b");
   }
 
   @Test
   public void testParallelAutomaticExecution() {
+    // +-------------+   +-------------+
+    // |     a       |   |      b      |
+    // | (Automatic) |   | (Automatic) |
+    // +-------------+   +-------------+
     Workflow workflow = new Workflow()
       .activity(new Automatic("a"))
       .activity(new Automatic("b"));
