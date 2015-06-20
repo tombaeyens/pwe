@@ -15,8 +15,9 @@ public class ActivityInstance {
     this.workflowInstance = workflowInstance;
   }
 
-  /** ends this activity instances and propagates the execution over 
-   * all the outgoing transitions. */
+  /** ends this activity instances and propagates the workflow execution 
+   * forward until no more work can be done now.  The propagation the 
+   * execution means that all the outgoing transitions are taken. */
   public void end() {
     end = new Date();
     for (Transition transition: activity.outgoingTransitions) {

@@ -16,8 +16,9 @@ public class WorkflowInstance {
 
   /** Start executing this workflow instance by executing all the {@link Workflow#startActivities}.
    * 
-   * This method will only return as soon as the workflow instance (and all activity instance inside) 
-   * have reached a wait state.
+   * This method will execute all work that can be done in the workflow now.  It will only return as 
+   * if nothing more can be done now.  When it returns, activity instances are either ended or 
+   * in a wait state.
    * 
    * This method should only be called once. */
   public void start() {
