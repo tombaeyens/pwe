@@ -10,7 +10,7 @@
   <name>Principles of Workflow Engines</name>
 
   <dependencies>
-
+  
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

@@ -31,4 +31,19 @@ public class ActivityInstance {
     end = new Date();
     workflowInstance.execute(transition.to);
   }
+
+  
+  public WorkflowInstance getWorkflowInstance() {
+    return workflowInstance;
+  }
+
+  
+  public Activity getActivity() {
+    return activity;
+  }
+
+  
+  public Date getEnd() {
+    return end;
+  }
 }

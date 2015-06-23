@@ -37,4 +37,12 @@ public class WorkflowInstance {
     activityInstances.add(activityInstance);
     activity.start(activityInstance);
   }
+  
+  public Workflow getWorkflow() {
+    return workflow;
+  }
+  
+  public List<ActivityInstance> getActivityInstances() {
+    return activityInstances;
+  }
 }

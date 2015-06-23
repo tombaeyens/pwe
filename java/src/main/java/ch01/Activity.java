@@ -42,4 +42,12 @@ public abstract class Activity {
    *    case the execution flow remains positioned in the activity instance 
    *    until the activity instance is ended externally. */
   public abstract void start(ActivityInstance activityInstance);
+
+  public String getId() {
+    return id;
+  }
+  
+  public List<Transition> getOutgoingTransitions() {
+    return outgoingTransitions;
+  }
 }

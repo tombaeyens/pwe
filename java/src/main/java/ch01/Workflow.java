@@ -46,4 +46,12 @@ public class Workflow {
     startActivities.remove(to);
     return this;
   }
+  
+  public Map<String, Activity> getActivities() {
+    return activities;
+  }
+
+  public List<Activity> getStartActivities() {
+    return startActivities;
+  }
 }

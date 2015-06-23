@@ -16,4 +16,20 @@ public class Transition {
     this.from = from;
     this.to = to;
   }
+
+  public Activity getFrom() {
+    return from;
+  }
+
+  public void setFrom(Activity from) {
+    this.from = from;
+  }
+
+  public Activity getTo() {
+    return to;
+  }
+  
+  public void setTo(Activity to) {
+    this.to = to;
+  }
 }
