@@ -14,7 +14,12 @@ least it's going to start as a repo.
   * Wait states
 * Persistence
   * Store, load and resume execution
-  * Transactions
+  * Transactions (advanced)
+  * Implications of non-transactional persistence  (advanced)
+  * Consistency (advanced)
+    * Keeping the persisted process state in sync with performed side effects
+    * Transactional and non transactional side effects
+    * Idempotent side effects
 * Concurrency
   * The thread of the client can be used to execute (=interpret) the workflow
     * Tradeoff: duration vs process execution information
