@@ -13,7 +13,7 @@ public class Automatic extends Activity {
 
   @Override
   public void start(ActivityInstance activityInstance) {
-    System.out.println("Ending "+id+" and continuing immediately");
+    System.out.println("Ending "+activityInstance+" and continuing immediately");
     activityInstance.end();
   }
 }

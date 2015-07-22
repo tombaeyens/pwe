@@ -1,6 +1,7 @@
 package ch01;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,5 +54,15 @@ public class Workflow {
 
   public List<Activity> getStartActivities() {
     return startActivities;
+  }
+  
+  public void setActivities(Collection<Activity> activities) {
+    for (Activity activity: activities) {
+      activity(activity);
+    }
+  }
+  
+  public Activity getActivity(String activityId) {
+    return activities.get(activityId);
   }
 }

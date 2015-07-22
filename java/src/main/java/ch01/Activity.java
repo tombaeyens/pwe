@@ -50,4 +50,12 @@ public abstract class Activity {
   public List<Transition> getOutgoingTransitions() {
     return outgoingTransitions;
   }
+
+  public void setId(String id) {
+    this.id = id;
+  }
+  
+  public void setOutgoingTransitions(List<Transition> outgoingTransitions) {
+    this.outgoingTransitions = outgoingTransitions;
+  }
 }

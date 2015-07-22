@@ -23,6 +23,7 @@ public class WorkflowInstance {
    * This method should only be called once. */
   public void start() {
     assert activityInstances.size()==0;
+    System.out.println("Starting new "+this);
     for (Activity startActivity: workflow.startActivities) {
       execute(startActivity);
     }
@@ -35,6 +36,7 @@ public class WorkflowInstance {
   public void execute(Activity activity) {
     ActivityInstance activityInstance = new ActivityInstance(activity, this);
     activityInstances.add(activityInstance);
+    System.out.println("Starting "+activityInstance);
     activity.start(activityInstance);
   }
   
@@ -44,5 +46,10 @@ public class WorkflowInstance {
   
   public List<ActivityInstance> getActivityInstances() {
     return activityInstances;
+  }
+
+  @Override
+  public String toString() {
+    return "workflow instance ("+System.identityHashCode(this)+")";
   }
 }

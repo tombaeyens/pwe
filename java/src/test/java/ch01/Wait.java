@@ -13,7 +13,7 @@ public class Wait extends Activity {
 
   @Override
   public void start(ActivityInstance activityInstance) {
-    System.out.println("Waiting in "+id+" till the activity instance is ended externally");
+    System.out.println("Waiting in "+activityInstance+" till the activity instance is ended externally");
   }
 }
 

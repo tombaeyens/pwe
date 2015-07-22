@@ -23,10 +23,12 @@ public class PersistenceTest extends AbstractTest {
     
     String workflowId = workflowEngine.deployWorkflow(workflow);
     
-//    DbWorkflowInstance workflowInstance = workflowEngine.startWorkflowInstance(workflowId);
-//
-//    workflowInstance.start();
-//
+    DbWorkflowInstance workflowInstance = workflowEngine.startWorkflowInstance(workflowId);
+    
+    // TODO assign ids to the activity instances 
+
+    // TODO convert the non-persistent code below to the persistent variant 
+
 //    // We check that there is an open activity instance waiting in 'a'
 //    assertWaiting(workflowInstance, "a");
 //    // We check that there are no ended activity instances
@@ -37,11 +39,11 @@ public class PersistenceTest extends AbstractTest {
 //    // just to be safe, we double check it is the one positioned in 'a'
 //    assertEquals("a", activityInstance.getActivity().getId());
 //    
-//    db.deployWorkflow(workflowInstance);
+//    workflowEngine.deployWorkflow(workflowInstance);
 //
 //    // long time...
 //    
-//    workflowInstance = db.loadWorkflowInstance(workflowInstanceId, activityInstanceId);
+//    workflowInstance = workflowEngine.loadWorkflowInstance(workflowInstanceId, activityInstanceId);
 //    
 //    activityInstance = workflowInstance.getActivityInstances().get(0);
 //    assertEquals("a", activityInstance.getActivity().getId());
