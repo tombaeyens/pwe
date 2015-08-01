@@ -44,6 +44,17 @@ least it's going to start as a repo.
   * Combining transaction logs with the other approaches
   * Copying the workflow structure in the workflow instance
 * Data
+  * Type pluggability (extending the type structure in java)
+  * User defined types: data structure for type pluggability
+  * Data vs references
+  * Expressions: resolving an expression based on a context
+  * Hierarchical contexts: scopeInstance context, scope context and external context   
+  * Bindings : mapping fixed names to configurable inputs for activities
+  * Conditions : boolean expressions used for:
+    * Transitions (and to lesser extend activities)
+  * Activating activities on conditions
+  * Binding message data to triggers and messages
+  * Mapping json and xml to data and expressions
 
 # Examples
   
@@ -69,15 +80,6 @@ least it's going to start as a repo.
   * Serialization
   * Extracting behavior into an interface
   * Dynamic pluggability
-* Data
-  * Type pluggability
-  * Data in the workflow model
-    * Configuration of pluggable activities
-  * Scoped contexts
-  * Data vs references
-  * Expression resolving
-    * Expression resolving of referenced objects
-  * Data unavailability blocking execution 
 * Event based alternative
   * TODO explore
   

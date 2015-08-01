@@ -5,7 +5,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>be.tombaeyens</groupId>
-  <artifactId>pwe</artifactId>
+  <artifactId>pwe-java-ch01</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <name>Principles of Workflow Engines</name>
 
