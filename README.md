@@ -36,7 +36,8 @@ least it's going to start as a repo.
 * Workflow models
   * Composition
   * Graph structure
-  * Activity configuration  
+  * Activity configuration
+  * Workflow templates  
 * Workflow instance models
   * Activity instances
   * Tokens
@@ -47,6 +48,7 @@ least it's going to start as a repo.
   * Type pluggability (extending the type structure in java)
   * User defined types: data structure for type pluggability
   * Data vs references
+  * Static variables
   * Expressions: resolving an expression based on a context
   * Hierarchical contexts: scopeInstance context, scope context and external context   
   * Bindings : mapping fixed names to configurable inputs for activities

@@ -7,5 +7,7 @@ public class WorkflowTest {
 
   @Test
   public void test() {
+    Workflow workflow = new Workflow();
+    WorkflowInstance workflowInstance = workflow.start();
   }
 }

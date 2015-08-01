@@ -3,6 +3,7 @@ package ch03;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import ch03.data.Condition;
 import ch03.data.Expression;
@@ -18,35 +19,59 @@ public class ExecutionController {
   ExecutionControllerContext context = new ExecutionControllerContext(this);
   Asynchronizer asynchronizer = null;
   Context externalContext; 
+  List<WorkflowListener> listeners;
   
-  public ExecutionController() {
-  }
-
-  public ExecutionController(Context externalContext) {
+  public ExecutionController(ScopeInstance scopeInstance, Context externalContext, List<WorkflowListener> listeners) {
+    this.scopeInstance = scopeInstance;
     this.externalContext = externalContext;
+    this.listeners = listeners;
   }
 
-  public void startScope() {
-    // if there are nested activities
-    if (!scopeInstance.scope.activities.isEmpty()) {
+  public void startTrigger(Trigger trigger, Map<String, Object> initialData) {
+    WorkflowInstance workflowInstance = (WorkflowInstance) scopeInstance;
+    workflowInstance.state = new Starting(); 
+    workflowInstance.initializeVariableInstances(initialData);
+    workflowInstance.triggerInstance = new TriggerInstance(trigger, workflowInstance);
+    workflowInstance.triggerInstance.initializeVariableInstances(initialData);
+    trigger.start(this);
+  }
+
+  /** starts the given scope */
+  public ActivityInstance startActivity(Activity activity) {
+    return startActivity(activity, this.scopeInstance);
+  }
+
+  /** starts the given scope */
+  public ActivityInstance startActivity(Activity activity, ScopeInstance parentScopeInstance) {
+    if (activity==null || !isConditionMet(activity.condition, parentScopeInstance)) {
+      return null;
+    }
+    ActivityInstance activityInstance = new ActivityInstance(activity, parentScopeInstance, new Starting());
+    parentScopeInstance.activityInstances.add(activityInstance);
+    perform(new StartActivity(activityInstance));
+    return activityInstance;
+  }
+
+  public List<ActivityInstance> startActivities(List<Activity> activities) {
+    List<ActivityInstance> activityInstances = new ArrayList<>();
+    if (!activities.isEmpty()) {
       // for each nested activity 
-      for (Scope scope: scopeInstance.scope.activities) {
-        // if the nested activity doesn't have any incoming transitions
-        if (scope.inTransitions.isEmpty()) {
-          // start it
-          start(scope);
+      for (Activity activity: activities) {
+        ActivityInstance activityInstance = startActivity(activity);
+        if (activityInstance!=null) {
+          activityInstances.add(activityInstance);
         }
       }
-    } else {
-      onwards();
     }
+    return activityInstances;
   }
   
   /** ends the activity instance and propagates the execution flow to the parent */
   public void end() {
     endScopeInstance();
-    if (scopeInstance.parentScopeInstance!=null) {
-      scopeInstance = scopeInstance.parentScopeInstance;
+    ScopeInstance parent = scopeInstance.getParent();
+    if (parent!=null) {
+      scopeInstance = parent;
     }
   }
 
@@ -54,7 +79,8 @@ public class ExecutionController {
    * or propagates the execution flow to the parent otherwise */
   public void onwards() {
     List<Transition> transitionsToTake = new ArrayList<>();
-    for (Transition outTransition: scopeInstance.scope.outTransitions) {
+    Activity activity = ((ActivityInstance)scopeInstance).activity;
+    for (Transition outTransition: activity.outTransitions) {
       if (isConditionMet(outTransition.condition, scopeInstance)) {
         transitionsToTake.add(outTransition);
       }
@@ -75,46 +101,30 @@ public class ExecutionController {
 
   /** takes the given transitions if there are any 
    * or propagates the execution flow to the parent otherwise */
-  public int takeTransitions(List<Transition> transitions) {
+  public List<ActivityInstance> takeTransitions(List<Transition> transitions) {
     endScopeInstance();
-    int activitiesStarted = 0;
+    List<ActivityInstance> activityInstances = new ArrayList<>();
     if (transitions!=null) {
       for (Transition transition : transitions) {
-        if (takeTransition(transition)) {
-          activitiesStarted++;
+        ActivityInstance activityInstance = takeTransition(transition);
+        if (activityInstance!=null) {
+          activityInstances.add(activityInstance);
         }
       }
     }
-    return activitiesStarted;
+    return activityInstances;
   }
 
-  public boolean takeTransition(Transition transition) {
+  public ActivityInstance takeTransition(Transition transition) {
     endScopeInstance();
     if (transition==null
         || transition.to==null
         || !isConditionMet(transition.condition, scopeInstance)) {
-      return false;
+      return null;
     }
-    return start(transition.to, scopeInstance.parentScopeInstance);
+    return startActivity(transition.to, scopeInstance.getParent());
   }
 
-  /** starts the given scope */
-  public boolean start(Scope scope) {
-    return start(scope, this.scopeInstance);
-  }
-
-  /** starts the given scope */
-  public boolean start(Scope scope, ScopeInstance parentScopeInstance) {
-    if (scope==null || !isConditionMet(scope.condition, parentScopeInstance)) {
-      return false;
-    }
-    ScopeInstance nestedScopeInstance = scope.createInstance();
-    nestedScopeInstance.initialize(scope, parentScopeInstance);
-    parentScopeInstance.scopeInstances.add(nestedScopeInstance);
-    perform(new StartScope(nestedScopeInstance));
-    return true;
-  }
-  
   protected void endScopeInstance() {
     if (!scopeInstance.isEnded()) {
       scopeInstance.end();
@@ -158,14 +168,24 @@ public class ExecutionController {
   }
 
   public TypedValue get(String key) {
-    Expression expression = scopeInstance.scope.inputBindings.get(key);
+    Expression expression = scopeInstance.scope.inputs.get(key);
     if (expression!=null) {
       return get(expression);
     }
     return context.get(key);
   }
 
+  public Object getValue(String key) {
+    TypedValue typedValue = get(key);
+    return typedValue!=null ? typedValue.getValue(): null;
+  }
+
   public TypedValue get(Expression expression) {
     return expression.get(context);
+  }
+
+  public Object getValue(Expression expression) {
+    TypedValue typedValue = expression.get(context);
+    return typedValue!=null ? typedValue.getValue() : null;
   }
 }

@@ -9,28 +9,23 @@ import java.util.Map;
 public class ScopeInstance {
   
   Scope scope;
-  ScopeInstance parentScopeInstance;
-  List<ScopeInstance> scopeInstances = new ArrayList<>();
-  Map<String,Object> variables = new LinkedHashMap<>();
+  ScopeInstance parent;
+  List<ActivityInstance> activityInstances = new ArrayList<>();
+  /** variable instances by variable.id (not by variableInstance.id) */
+  Map<String,VariableInstance> variableInstances = new LinkedHashMap<>();
   ExecutionState state;
   
-  public void initialize(Scope scope, ScopeInstance parentScopeInstance) {
-    this.scope = scope;
-    this.parentScopeInstance = parentScopeInstance;
-    this.state = new Starting();
+  protected void initializeVariableInstances(Map<String, Object> initialData) {
+    for (String key: scope.variables.keySet()) {
+      Variable variable = scope.variables.get(key);
+      Object initialValue = initialData!=null ? initialData.remove(key) : null;
+      createVariableInstance(variable, initialValue);
+    }
   }
 
-  public void start() {
-    start(new ExecutionController());
-  }
-
-  public void start(ExecutionController executionController) {
-    executionController.scopeInstance = this;
-    scope.start(executionController);
-  }
-  
-  public Map<String, Object> getVariables() {
-    return variables;
+  protected void createVariableInstance(Variable variable, Object initialValue) {
+    VariableInstance variableInstance = new VariableInstance(this, variable, initialValue);
+    variableInstances.put(variable.id, variableInstance);
   }
 
   public boolean isEnded() {
@@ -39,5 +34,9 @@ public class ScopeInstance {
 
   public void end() {
     state = new Ended();
+  }
+
+  public ScopeInstance getParent() {
+    return parent;
   }
 }

@@ -1,15 +1,11 @@
 package ch03;
 
 
-public class EmailTask extends Scope {
-  
-  
+public class Onwards extends Activity {
 
   @Override
   public void start(ExecutionController controller) {
-    
-    controller.get("attachments");  
+    controller.onwards();
   }
-
   
 }
