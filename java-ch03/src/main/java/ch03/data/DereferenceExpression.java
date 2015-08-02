@@ -3,9 +3,12 @@ package ch03.data;
 import ch03.Context;
 
 
-public class DereferenceExpression implements Expression {
+/**
+ * @author Tom Baeyens
+ */
+public class DereferenceExpression implements InputExpression, OutputExpression {
   
-  Expression expression;
+  InputExpression expression;
   String key;
 
   @Override
@@ -16,5 +19,7 @@ public class DereferenceExpression implements Expression {
 
   @Override
   public void set(Context context, TypedValue value) {
+    TypedValue targetValue = expression.get(context);
+    targetValue.set(key, value);
   }
 }

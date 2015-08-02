@@ -2,6 +2,9 @@ package ch03;
 
 
 
+/**
+ * @author Tom Baeyens
+ */
 public class ActivityInstance extends ScopeInstance {
   
   Activity activity;

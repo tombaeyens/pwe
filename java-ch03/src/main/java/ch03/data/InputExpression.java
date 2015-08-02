@@ -3,8 +3,10 @@ package ch03.data;
 import ch03.Context;
 
 
-public interface Expression {
+/**
+ * @author Tom Baeyens
+ */
+public interface InputExpression {
 
   TypedValue get(Context context);
-  void set(Context context, TypedValue value);
 }

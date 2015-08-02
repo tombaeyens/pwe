@@ -1,6 +1,9 @@
 package ch03.data;
 
 
+/**
+ * @author Tom Baeyens
+ */
 public class TypedValue {
 
   Type type;
@@ -12,7 +15,7 @@ public class TypedValue {
   }
 
   public TypedValue dereference(String key) {
-    return type.dereference(value, key);
+    return type.get(value, key);
   }
   
   public Type getType() {
@@ -28,5 +31,9 @@ public class TypedValue {
       return (TypedValue) value;
     }
     return new TypedValue(null, value);
+  }
+
+  public void set(String key, TypedValue value) {
+    type.set(this.value, key, value);
   }
 }

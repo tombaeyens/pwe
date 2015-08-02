@@ -1,6 +1,9 @@
 package ch03;
 
 
+/**
+ * @author Tom Baeyens
+ */
 public class Onwards extends Activity {
 
   @Override

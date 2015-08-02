@@ -1,12 +1,17 @@
 package ch03.data;
 
 
+/**
+ * @author Tom Baeyens
+ */
 public interface Type {
 
-  TypedValue dereference(Object value, String key);
+  TypedValue get(Object object, String field);
+  void set(Object object, String field, TypedValue value);
 
   TypedValue convertTo(Type targetType);
-  
+
+  /** used to check if conversion is needed */
   boolean equals(Object other);
   int hashCode();
 }

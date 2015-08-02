@@ -3,6 +3,9 @@ package ch03;
 import org.junit.Test;
 
 
+/**
+ * @author Tom Baeyens
+ */
 public class WorkflowTest {
 
   @Test

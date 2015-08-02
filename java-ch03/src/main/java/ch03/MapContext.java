@@ -6,6 +6,9 @@ import java.util.Map;
 import ch03.data.TypedValue;
 
 
+/**
+ * @author Tom Baeyens
+ */
 public class MapContext implements Context {
   
   Map<Object,TypedValue> map;

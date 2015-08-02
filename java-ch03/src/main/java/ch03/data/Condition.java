@@ -7,6 +7,9 @@ import java.util.Set;
 import ch03.Context;
 
 
+/**
+ * @author Tom Baeyens
+ */
 public class Condition {
   
   public static Set<String> FALSE_STRINGS = new HashSet<>(Arrays.asList(new String[]{
@@ -23,7 +26,7 @@ public class Condition {
     // TODO append all other languages :)
   }));
 
-  Expression expression;
+  InputExpression expression;
 
   public boolean evaluate(Context context) {
     TypedValue typedValue = expression.get(context);

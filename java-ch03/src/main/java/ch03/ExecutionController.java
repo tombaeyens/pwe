@@ -3,20 +3,22 @@ package ch03;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import ch03.data.Condition;
-import ch03.data.Expression;
+import ch03.data.InputExpression;
 import ch03.data.TypedValue;
 
 
+/**
+ * @author Tom Baeyens
+ */
 public class ExecutionController {
   
   ScopeInstance scopeInstance;
   boolean isAsync = false;
   LinkedList<Operation> operations = null; // null is important. @see perform(Operation)
   LinkedList<Operation> asyncOperations = null;
-  ExecutionControllerContext context = new ExecutionControllerContext(this);
+  ExecutionContext context = new ExecutionContext(this);
   Asynchronizer asynchronizer = null;
   Context externalContext; 
   List<WorkflowListener> listeners;
@@ -27,13 +29,18 @@ public class ExecutionController {
     this.listeners = listeners;
   }
 
-  public void startTrigger(Trigger trigger, Map<String, Object> initialData) {
+  public void startTrigger(Trigger trigger, Context context) {
     WorkflowInstance workflowInstance = (WorkflowInstance) scopeInstance;
     workflowInstance.state = new Starting(); 
-    workflowInstance.initializeVariableInstances(initialData);
+    workflowInstance.initialize(context);
     workflowInstance.triggerInstance = new TriggerInstance(trigger, workflowInstance);
-    workflowInstance.triggerInstance.initializeVariableInstances(initialData);
+    workflowInstance.triggerInstance.initialize(context);
+    
+    // TODO put the next 2 in an operation so that triggers can be  
+    // * asyncronous
+    // * wait states (like for eg bpel correlation)
     trigger.start(this);
+    workflowInstance.triggerInstance.destroy(context);
   }
 
   /** starts the given scope */
@@ -168,7 +175,7 @@ public class ExecutionController {
   }
 
   public TypedValue get(String key) {
-    Expression expression = scopeInstance.scope.inputs.get(key);
+    InputExpression expression = scopeInstance.scope.inputs.get(key);
     if (expression!=null) {
       return get(expression);
     }
@@ -180,11 +187,11 @@ public class ExecutionController {
     return typedValue!=null ? typedValue.getValue(): null;
   }
 
-  public TypedValue get(Expression expression) {
+  public TypedValue get(InputExpression expression) {
     return expression.get(context);
   }
 
-  public Object getValue(Expression expression) {
+  public Object getValue(InputExpression expression) {
     TypedValue typedValue = expression.get(context);
     return typedValue!=null ? typedValue.getValue() : null;
   }

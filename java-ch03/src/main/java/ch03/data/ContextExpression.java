@@ -3,7 +3,10 @@ package ch03.data;
 import ch03.Context;
 
 
-public class ContextExpression implements Expression {
+/**
+ * @author Tom Baeyens
+ */
+public class ContextExpression implements InputExpression, OutputExpression {
   
   String key;
 
@@ -14,6 +17,6 @@ public class ContextExpression implements Expression {
 
   @Override
   public void set(Context context, TypedValue value) {
+    context.set(key, value);
   }
-
 }

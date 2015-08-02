@@ -3,6 +3,9 @@ package ch03;
 import ch03.data.TypedValue;
 
 
+/**
+ * @author Tom Baeyens
+ */
 public class ScopeContext implements Context {
 
   ExecutionController executionController;

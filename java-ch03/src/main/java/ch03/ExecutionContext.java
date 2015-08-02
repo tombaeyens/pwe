@@ -7,12 +7,15 @@ import ch03.data.ContextType;
 import ch03.data.TypedValue;
 
 
-public class ExecutionControllerContext implements Context {
+/**
+ * @author Tom Baeyens
+ */
+public class ExecutionContext implements Context {
   
   ExecutionController executionController;
   Map<String,Context> contexts = new LinkedHashMap<>();
   
-  public ExecutionControllerContext(final ExecutionController executionController) {
+  public ExecutionContext(final ExecutionController executionController) {
     contexts.put("scopeInstance", new ScopeInstanceContext(executionController));
     contexts.put("scope", new ScopeContext(executionController));
     contexts.put("external", executionController.externalContext);

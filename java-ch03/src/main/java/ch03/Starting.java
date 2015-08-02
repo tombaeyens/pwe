@@ -17,6 +17,9 @@ package ch03;
 /**
  * @author Tom Baeyens
  */
+/**
+ * @author Tom Baeyens
+ */
 public class Starting implements ExecutionState {
 
   @Override

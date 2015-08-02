@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 
+/**
+ * @author Tom Baeyens
+ */
 public class Workflow extends Scope {
   
   Trigger trigger;
@@ -22,7 +25,8 @@ public class Workflow extends Scope {
   public WorkflowInstance start(Map<String,Object> initialData, Context externalContext) {
     WorkflowInstance workflowInstance = new WorkflowInstance(this);
     ExecutionController executionController = new ExecutionController(workflowInstance, externalContext, listeners);
-    executionController.startTrigger(trigger, initialData);
+    MapContext initialContext = new MapContext(initialData);
+    executionController.startTrigger(trigger, initialContext);
     return workflowInstance;
   }
 }
