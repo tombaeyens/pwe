@@ -11,12 +11,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License. */
-package ch03.engine;
+package ch03.engine.operation;
 
 import java.util.List;
 import java.util.Map;
 
 import ch03.data.TypedValue;
+import ch03.engine.Execution;
 import ch03.model.Activity;
 import ch03.model.ScopeInstance;
 import ch03.model.Trigger;

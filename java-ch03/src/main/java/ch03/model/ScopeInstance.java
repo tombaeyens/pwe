@@ -5,8 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import ch03.engine.Ended;
-import ch03.engine.ExecutionState;
+import ch03.engine.state.ExecutionState;
 import ch03.util.ApiException;
 
 
@@ -25,10 +24,6 @@ public class ScopeInstance {
   
   public boolean isEnded() {
     return state.isEnded();
-  }
-
-  public void end() {
-    state = new Ended();
   }
 
   public ScopeInstance getParent() {

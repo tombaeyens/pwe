@@ -7,7 +7,6 @@ import java.util.Map;
 
 import ch03.data.Condition;
 import ch03.data.InputExpression;
-import ch03.data.TypedValue;
 import ch03.engine.Execution;
 
 /**
@@ -34,6 +33,4 @@ public class Activity extends Scope {
   public void start(Execution execution) {
   }
 
-  public void handleMessageData(Execution execution, Map<String, TypedValue> messageData) {
-  }
 }

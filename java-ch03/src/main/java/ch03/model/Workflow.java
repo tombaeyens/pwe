@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import ch03.data.TypedValue;
+import ch03.engine.WorkflowInstancePersistence;
 
 
 /**
@@ -13,7 +14,7 @@ import ch03.data.TypedValue;
 public class Workflow extends Scope {
   
   public Trigger trigger;
-  public List<WorkflowListener> listeners = new ArrayList<>();
+  public List<WorkflowInstancePersistence> listeners = new ArrayList<>();
   public List<Activity> startActivities = null;
 
   public List<Activity> getStartActivities() {

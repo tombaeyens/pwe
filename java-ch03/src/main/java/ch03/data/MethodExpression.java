@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ch03.data.types.ExceptionType;
-import ch03.engine.Context;
+import ch03.engine.context.Context;
 
 
 /**
@@ -19,13 +19,13 @@ public class MethodExpression implements InputExpression {
   Type returnValueType;
 
   @Override
-  public TypedValue get(Context context) {
-    Object object = objectExpression.get(context).value;
+  public TypedValue getTypedValue(Context context) {
+    Object object = objectExpression.getTypedValue(context).value;
     Object[] args = null;
     if (argExpressions!=null) {
       List<Object> argsList = new ArrayList<>();
       for (InputExpression argExpression: argExpressions) {
-        Object argValue = argExpression.get(context).value;
+        Object argValue = argExpression.getTypedValue(context).value;
         argsList.add(argValue);
       }
       args = argsList.toArray();

@@ -8,6 +8,8 @@ import ch03.engine.Execution;
 import ch03.model.ActivityInstance;
 import ch03.model.Workflow;
 import ch03.model.WorkflowInstance;
+import ch03.workflow.Async;
+import ch03.workflow.Sync;
 
 
 /**
@@ -22,7 +24,7 @@ public class WorkflowTest {
     Sync sync = workflow.add("sync", new Sync());
     
     Async async = workflow.add("async", new Async());
-    
+
     WorkflowInstance workflowInstance = new Execution()
       .startWorkflowInstance(workflow);
     

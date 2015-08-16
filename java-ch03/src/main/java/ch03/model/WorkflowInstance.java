@@ -13,8 +13,4 @@ public class WorkflowInstance extends ScopeInstance {
   public WorkflowInstance getWorkflowInstance() {
     return this;
   }
-
-  public boolean isEnded() {
-    return state.isEnded();
-  }
 }

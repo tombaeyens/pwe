@@ -1,6 +1,6 @@
 package ch03.data;
 
-import ch03.engine.Context;
+import ch03.engine.context.Context;
 
 
 /**
@@ -8,5 +8,5 @@ import ch03.engine.Context;
  */
 public interface InputExpression {
 
-  TypedValue get(Context context);
+  TypedValue getTypedValue(Context context);
 }

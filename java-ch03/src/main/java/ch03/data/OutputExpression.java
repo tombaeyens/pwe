@@ -1,6 +1,6 @@
 package ch03.data;
 
-import ch03.engine.Context;
+import ch03.engine.context.Context;
 
 
 /**
@@ -8,6 +8,6 @@ import ch03.engine.Context;
  */
 public interface OutputExpression {
 
-  void set(Context context, TypedValue value);
+  void setTypedValue(Context context, TypedValue value);
 
 }

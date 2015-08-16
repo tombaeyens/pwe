@@ -1,5 +1,7 @@
-package ch03.engine;
+package ch03.engine.operation;
 
+import ch03.engine.Execution;
+import ch03.engine.state.Starting;
 import ch03.model.ActivityInstance;
 
 
@@ -14,6 +16,7 @@ public class StartActivity extends Operation {
   
   @Override
   public void perform(Execution execution) {
+    execution.setState(Starting.INSTANCE);
     activityInstance.activity.start(execution);
   }
 }

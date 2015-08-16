@@ -1,5 +1,6 @@
-package ch03.engine;
+package ch03.engine.operation;
 
+import ch03.engine.Execution;
 import ch03.model.ActivityInstance;
 import ch03.model.ScopeInstance;
 

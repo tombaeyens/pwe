@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import ch03.engine.Context;
+import ch03.engine.context.Context;
 
 
 /**
@@ -29,7 +29,7 @@ public class Condition {
   InputExpression expression;
 
   public boolean evaluate(Context context) {
-    TypedValue typedValue = expression.get(context);
+    TypedValue typedValue = expression.getTypedValue(context);
     if (typedValue==null || typedValue.value==null) {
       return false;
     }

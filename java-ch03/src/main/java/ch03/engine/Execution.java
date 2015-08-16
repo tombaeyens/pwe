@@ -10,6 +10,17 @@ import ch03.data.Condition;
 import ch03.data.InputExpression;
 import ch03.data.OutputExpression;
 import ch03.data.TypedValue;
+import ch03.engine.context.Context;
+import ch03.engine.context.ExecutionContext;
+import ch03.engine.operation.HandleActivityInstanceMessage;
+import ch03.engine.operation.Operation;
+import ch03.engine.operation.StartActivity;
+import ch03.engine.operation.StartWorkflowInstance;
+import ch03.engine.state.Created;
+import ch03.engine.state.Ended;
+import ch03.engine.state.ExecutionState;
+import ch03.engine.state.Starting;
+import ch03.engine.state.WaitingForMessage;
 import ch03.model.Activity;
 import ch03.model.ActivityInstance;
 import ch03.model.ScopeInstance;
@@ -18,10 +29,10 @@ import ch03.model.Variable;
 import ch03.model.VariableInstance;
 import ch03.model.Workflow;
 import ch03.model.WorkflowInstance;
-import ch03.model.WorkflowListener;
 
 
-/**
+/** Represents the workflow interpretation when it's being allocated to a Thread. 
+ *   
  * @author Tom Baeyens
  */
 public class Execution {
@@ -31,16 +42,16 @@ public class Execution {
   LinkedList<Operation> operations = null; // null is important. @see perform(Operation)
   LinkedList<Operation> asyncOperations = null;
   ExecutionContext executionContext = new ExecutionContext(this);
-  Asynchronizer asynchronizer = null;
-  List<WorkflowListener> listeners;
   
-
-  public void addContext(String name, Context context) {
-    executionContext.add(name, context);
+  WorkflowInstancePersistence persistence = null;
+  Asynchronizer asynchronizer = null;
+  
+  public Context getContext() {
+    return executionContext;
   }
   
-  public void removeContext(String name) {
-    executionContext.remove(name);
+  public <T> T findInExternalContext(Class<T> type) {
+    return null;
   }
 
   public WorkflowInstance startWorkflowInstance(Workflow workflow) {
@@ -56,13 +67,13 @@ public class Execution {
           Map<String, TypedValue> startData, 
           List<Activity> startActivities) {
     
-    listeners = workflow.listeners;
-
     WorkflowInstance workflowInstance = instantiateWorkflowInstance();
     workflowInstance.workflow = workflow;
     workflowInstance.scope = workflow;
-    workflowInstance.id = generateWorkflowInstanceId();
-    workflowInstance.state = new Starting(); 
+    workflowInstance.state = new Starting();
+    workflowInstance.id = persistence.generateWorkflowInstanceId(workflowInstance);
+    
+    persistence.workflowInstanceCreated(workflowInstance);
 
     scopeInstance = workflowInstance;
     enterScope();
@@ -80,14 +91,13 @@ public class Execution {
     perform(new HandleActivityInstanceMessage(activityInstance, messageData));
     return activityInstance.getWorkflowInstance();
   }
-
   
   public Map<String,TypedValue> getInputs() {
     Map<String,TypedValue> inputs = new LinkedHashMap<>();
     Map<String,InputExpression> inputParameters = scopeInstance.scope.inputParameters;
     for (String key: inputParameters.keySet()) {
       InputExpression inputExpression = inputParameters.get(key);
-      TypedValue typedValue = inputExpression.get(executionContext);
+      TypedValue typedValue = inputExpression.getTypedValue(executionContext);
       inputs.put(key, typedValue);
     }
     return inputs;
@@ -99,7 +109,7 @@ public class Execution {
       TypedValue typedValue = outputs.get(key);
       OutputExpression outputExpression = outputParameters.get(key);
       if (outputExpression!=null) {
-        outputExpression.set(executionContext, typedValue);
+        outputExpression.setTypedValue(executionContext, typedValue);
       } else {
         VariableInstance variableInstance = scopeInstance.findVariableInstanceByVariableIdRecursive(key);
         setVariableInstanceValue(variableInstance, typedValue);
@@ -117,16 +127,18 @@ public class Execution {
 
   public void createVariableInstance(Variable variable) {
     VariableInstance variableInstance = instantiateVariableInstance();
-    variableInstance.setId(generateVariableInstanceId());
     variableInstance.setVariable(variable);
     variableInstance.setScopeInstance(scopeInstance);
     scopeInstance.variableInstances.put(variable.getId(), variableInstance);
-
+    variableInstance.setId(persistence.generateVariableInstanceId(variableInstance));
+    
     if (variable.getInitialValue()!=null) {
       variableInstance.setTypedValue(new TypedValue(variable.getType(), variable.getInitialValue()));
     } else if (variable.getInitialValueExpression()!=null) {
       variableInstance.setTypedValue(getTypedValue(variable.getInitialValueExpression())); 
     }
+
+    persistence.variableInstanceCreated(variableInstance);
   }
 
   public void setVariableInstanceValue(String variableId, TypedValue typedValue) {
@@ -134,10 +146,11 @@ public class Execution {
     setVariableInstanceValue(variableInstance, typedValue);
   }
 
-  protected void setVariableInstanceValue(VariableInstance variableInstance, TypedValue typedValue) {
-    variableInstance.setTypedValue(typedValue);
+  protected void setVariableInstanceValue(VariableInstance variableInstance, TypedValue newValue) {
+    TypedValue oldValue = variableInstance.getTypedValue();
+    persistence.variableInstanceValueUpdated(variableInstance, oldValue);
   }
-
+  
   public void leaveScope(Context context) {
   }
 
@@ -152,13 +165,14 @@ public class Execution {
       return null;
     }
     ActivityInstance activityInstance = instantiateActivityInstance();
-    activityInstance.id = generateActivityInstanceId();
     activityInstance.scope = activity;
     activityInstance.activity = activity;
-    activityInstance.state = new Starting();
-
+    activityInstance.state = new Created();
     activityInstance.parent = parentScopeInstance;
     parentScopeInstance.activityInstances.add(activityInstance);
+    activityInstance.id = persistence.generateActivityInstanceId(activityInstance);
+
+    persistence.activityInstanceCreated(activityInstance);
     
     perform(new StartActivity(activityInstance));
     
@@ -241,6 +255,21 @@ public class Execution {
   protected void endScopeInstance() {
     if (!scopeInstance.isEnded()) {
       scopeInstance.state = new Ended();
+      if (scopeInstance instanceof ActivityInstance) {
+        persistence.activityInstanceEnded((ActivityInstance)scopeInstance);
+      } else {
+        persistence.workflowInstanceEnded((WorkflowInstance)scopeInstance);
+      }
+    }
+  }
+
+  public void setState(ExecutionState state) {
+    ExecutionState oldState = scopeInstance.state; 
+    scopeInstance.state = state;
+    if (scopeInstance instanceof ActivityInstance) {
+      persistence.activityInstanceStateUpdate((ActivityInstance)scopeInstance, oldState);
+    } else {
+      persistence.workflowInstanceStateUpdate((WorkflowInstance)scopeInstance, oldState);
     }
   }
   
@@ -249,11 +278,8 @@ public class Execution {
       operations = new LinkedList<>();
       addOperation(operation);
       executeOperations();
-      if (asyncOperations!=null && !asyncOperations.isEmpty()) {
-        operations = asyncOperations;
-        asyncOperations = null;
-        asynchronizer.continueAsynchrous(this);
-      }
+      executeAsynchronousOperations();
+
     } else {
       addOperation(operation);
     }
@@ -262,24 +288,53 @@ public class Execution {
   protected void addOperation(Operation operation) {
     if (isAsync || operation.isSynchonrous()) {
       operations.add(operation);
+      persistence.operationSynchronousAdded(operation);
     } else {
+      persistence.operationAsynchronousAdded(operation);
       asyncOperations.add(operation);
     }
   }
 
-  public void continueAsynchrous() {
-    isAsync = true;
-    executeOperations();
-  }
-
   protected void executeOperations() {
     while (!operations.isEmpty()) {
+      // This execution still has more work to do.
+      // At this place the persistence is in a consistent state 
+      // to be resumed later if things would crash further down.
+      persistence.savePoint(scopeInstance.getWorkflowInstance(), operations, asyncOperations);
       Operation current = operations.removeFirst();
+      persistence.operationSynchronousRemoved(current);
       this.scopeInstance = current.getScopeInstance();
       current.perform(this);
     }
   }
 
+  protected void executeAsynchronousOperations() {
+    if (asyncOperations!=null && !asyncOperations.isEmpty()) {
+      operations = asyncOperations;
+      asyncOperations = null;
+      
+      asynchronizer.continueAsynchrous(this);
+    }
+    // No more work to be done
+    persistence.flush(scopeInstance.getWorkflowInstance());
+  }
+  
+  /** It's the responsibility of the asynchronizer to call this 
+   * method in a different thread */
+  public void continueAsynchrous() {
+    isAsync = true;
+    executeOperations();
+    // there should be no further asynchronous work here
+  }
+  
+  /** Resumes a crashed workflow instance after being restored 
+   * from persistence. */  
+  public void resume() {
+    executeOperations();
+    executeAsynchronousOperations();
+    
+  }
+  
   public TypedValue getTypedValue(String key) {
     return executionContext.get(key);
   }
@@ -290,11 +345,11 @@ public class Execution {
   }
 
   public TypedValue getTypedValue(InputExpression expression) {
-    return expression.get(executionContext);
+    return expression.getTypedValue(executionContext);
   }
 
   public Object getValue(InputExpression expression) {
-    TypedValue typedValue = expression.get(executionContext);
+    TypedValue typedValue = expression.getTypedValue(executionContext);
     return typedValue!=null ? typedValue.getValue() : null;
   }
 
@@ -319,17 +374,5 @@ public class Execution {
 
   protected VariableInstance instantiateVariableInstance() {
     return new VariableInstance();
-  }
-
-  protected String generateWorkflowInstanceId() {
-    return null;
-  }
-
-  protected String generateActivityInstanceId() {
-    return null;
-  }
-
-  protected String generateVariableInstanceId() {
-    return null;
   }
 }

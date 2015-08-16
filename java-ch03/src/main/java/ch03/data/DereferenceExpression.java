@@ -1,6 +1,6 @@
 package ch03.data;
 
-import ch03.engine.Context;
+import ch03.engine.context.Context;
 
 
 /**
@@ -12,14 +12,14 @@ public class DereferenceExpression implements InputExpression, OutputExpression 
   String key;
 
   @Override
-  public TypedValue get(Context context) {
-    TypedValue targetValue = expression.get(context);
+  public TypedValue getTypedValue(Context context) {
+    TypedValue targetValue = expression.getTypedValue(context);
     return targetValue.dereference(key);
   }
 
   @Override
-  public void set(Context context, TypedValue value) {
-    TypedValue targetValue = expression.get(context);
+  public void setTypedValue(Context context, TypedValue value) {
+    TypedValue targetValue = expression.getTypedValue(context);
     targetValue.set(key, value);
   }
 }

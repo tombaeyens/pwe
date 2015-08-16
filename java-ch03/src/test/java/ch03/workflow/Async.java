@@ -1,4 +1,4 @@
-package ch03;
+package ch03.workflow;
 
 import ch03.engine.Execution;
 import ch03.model.Activity;
