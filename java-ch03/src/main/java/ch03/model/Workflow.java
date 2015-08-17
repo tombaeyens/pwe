@@ -2,9 +2,7 @@ package ch03.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import ch03.data.TypedValue;
 import ch03.engine.WorkflowInstancePersistence;
 
 

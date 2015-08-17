@@ -1,6 +1,7 @@
 package ch03.engine;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,7 +12,7 @@ import ch03.data.InputExpression;
 import ch03.data.OutputExpression;
 import ch03.data.TypedValue;
 import ch03.engine.context.Context;
-import ch03.engine.context.ExecutionContext;
+import ch03.engine.context.AllContexts;
 import ch03.engine.operation.HandleActivityInstanceMessage;
 import ch03.engine.operation.Operation;
 import ch03.engine.operation.StartActivity;
@@ -41,17 +42,34 @@ public class Execution {
   boolean isAsync = false;
   LinkedList<Operation> operations = null; // null is important. @see perform(Operation)
   LinkedList<Operation> asyncOperations = null;
-  ExecutionContext executionContext = new ExecutionContext(this);
+  AllContexts allContexts = new AllContexts(this);
+  Map<String, TypedValue> inputs;
+  Map<String, TypedValue> outputs;
   
   WorkflowInstancePersistence persistence = null;
   Asynchronizer asynchronizer = null;
   
-  public Context getContext() {
-    return executionContext;
+  public AllContexts getAllContexts() {
+    return allContexts;
   }
   
-  public <T> T findInExternalContext(Class<T> type) {
-    return null;
+  /** fluent setter for the external context */
+  public Execution externalContext(Context externalContext) {
+    allContexts.addExternal(externalContext);
+    return this;
+  }
+  
+  public Context getExternalContext() {
+    return allContexts.getExternalContext();
+  }
+  
+  public Object findExternally(String key) {
+    Context externalContext = getExternalContext();
+    return externalContext!=null ? externalContext.get(key) : null;
+  }
+  
+  public <T> T findExternally(Class<T> type) {
+    return (T) findExternally(type.getName());
   }
 
   public WorkflowInstance startWorkflowInstance(Workflow workflow) {
@@ -97,7 +115,7 @@ public class Execution {
     Map<String,InputExpression> inputParameters = scopeInstance.scope.inputParameters;
     for (String key: inputParameters.keySet()) {
       InputExpression inputExpression = inputParameters.get(key);
-      TypedValue typedValue = inputExpression.getTypedValue(executionContext);
+      TypedValue typedValue = inputExpression.getTypedValue(allContexts);
       inputs.put(key, typedValue);
     }
     return inputs;
@@ -109,7 +127,7 @@ public class Execution {
       TypedValue typedValue = outputs.get(key);
       OutputExpression outputExpression = outputParameters.get(key);
       if (outputExpression!=null) {
-        outputExpression.setTypedValue(executionContext, typedValue);
+        outputExpression.setTypedValue(allContexts, typedValue);
       } else {
         VariableInstance variableInstance = scopeInstance.findVariableInstanceByVariableIdRecursive(key);
         setVariableInstanceValue(variableInstance, typedValue);
@@ -223,7 +241,7 @@ public class Execution {
     if (condition==null) {
       return true;
     }
-    return condition.evaluate(executionContext);
+    return condition.evaluate(allContexts);
   }
 
   /** takes the given transitions if there are any 
@@ -336,7 +354,7 @@ public class Execution {
   }
   
   public TypedValue getTypedValue(String key) {
-    return executionContext.get(key);
+    return allContexts.get(key);
   }
 
   public Object getValue(String key) {
@@ -345,11 +363,11 @@ public class Execution {
   }
 
   public TypedValue getTypedValue(InputExpression expression) {
-    return expression.getTypedValue(executionContext);
+    return expression.getTypedValue(allContexts);
   }
 
   public Object getValue(InputExpression expression) {
-    TypedValue typedValue = expression.getTypedValue(executionContext);
+    TypedValue typedValue = expression.getTypedValue(allContexts);
     return typedValue!=null ? typedValue.getValue() : null;
   }
 
@@ -374,5 +392,31 @@ public class Execution {
 
   protected VariableInstance instantiateVariableInstance() {
     return new VariableInstance();
+  }
+
+  public void collectInputs() {
+    inputs = new HashMap<>();
+    outputs = new HashMap<>();
+    ActivityInstance activityInstance = (ActivityInstance) scopeInstance;
+    Activity activity = activityInstance.activity;
+    if (activity.inputBindings!=null) {
+      for (String inputKey: activity.inputBindings.keySet()) {
+        InputExpression inputBinding = activity.inputBindings.get(inputKey);
+        TypedValue input = inputBinding.getTypedValue(allContexts);
+        inputs.put(inputKey, input);
+      }
+    }
+  }
+
+  public void propagateOutputs() {
+    ActivityInstance activityInstance = (ActivityInstance) scopeInstance;
+    Activity activity = activityInstance.activity;
+    if (!outputs.isEmpty() && activity.outputBindings!=null) {
+      for (String outputKey: outputs.keySet()) {
+        TypedValue output = outputs.get(outputKey);
+        OutputExpression outputBinding = activity.outputBindings.get(outputKey);
+        outputBinding.setTypedValue(allContexts, output);
+      }
+    }
   }
 }

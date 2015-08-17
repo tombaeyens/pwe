@@ -7,6 +7,7 @@ import java.util.Map;
 
 import ch03.data.Condition;
 import ch03.data.InputExpression;
+import ch03.data.OutputExpression;
 import ch03.engine.Execution;
 
 /**
@@ -16,7 +17,7 @@ public class Activity extends Scope {
 
   public Condition condition;
   public Map<String,InputExpression> inputBindings = new LinkedHashMap<>();
-  public Map<String,InputExpression> outputBindings = new LinkedHashMap<>();
+  public Map<String,OutputExpression> outputBindings = new LinkedHashMap<>();
   public Scope parent;
   public List<Transition> inTransitions = new ArrayList<>();
   public List<Transition> outTransitions = new ArrayList<>();
@@ -29,8 +30,17 @@ public class Activity extends Scope {
     transition.to.inTransitions.add(transition);
     return transition;
   }
+  
+  public Activity inputBinding(String key, InputExpression inputExpression) {
+    inputBindings.put(key, inputExpression);
+    return this;
+  }
+
+  public Activity outputBinding(String key, OutputExpression outputExpression) {
+    outputBindings.put(key, outputExpression);
+    return this;
+  }
 
   public void start(Execution execution) {
   }
-
 }

@@ -17,7 +17,7 @@ public class ContextType implements Type {
   }
 
   @Override
-  public TypedValue convertTo(Type targetType) {
+  public TypedValue convertTo(Object value, Type targetType) {
     throw new UnsupportedOperationException();
   }
 

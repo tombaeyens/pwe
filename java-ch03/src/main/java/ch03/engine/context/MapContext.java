@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import ch03.data.TypedValue;
+import ch03.data.types.JavaBeanType;
 
 
 /**
@@ -34,5 +35,17 @@ public class MapContext implements Context {
 
   @Override
   public void set(String key, TypedValue value) {
+    map.put(key, value);
+  }
+  
+  /** fluent setter */
+  public MapContext put(String key, TypedValue value) {
+    set(key, value);
+    return this;
+  }
+  
+  public MapContext put(Object bean) {
+    set(bean.getClass().getName(), new TypedValue(new JavaBeanType(), bean));
+    return this;
   }
 }

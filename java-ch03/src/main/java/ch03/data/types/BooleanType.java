@@ -17,7 +17,7 @@ public class BooleanType implements Type {
   }
 
   @Override
-  public TypedValue convertTo(Type targetType) {
+  public TypedValue convertTo(Object value, Type targetType) {
     return null;
   }
 

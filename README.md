@@ -49,9 +49,6 @@ end up as a series of blog posts or a book.
   * Workflow instance models
     * Activity instance composition
     * Token / execution based approach
-    * Change logs
-    * Combining change logs with the other approaches
-    * Copying the workflow structure in the workflow instance
 
 # Concurrency aspects
 
@@ -151,6 +148,9 @@ end up as a series of blog posts or a book.
       * Transactional and non transactional side effects
       * Idempotent side effects
     * Dirty checking
+    * Change logs
+    * Combining change logs with the other approaches
+    * Copying the workflow structure in the workflow instance
     * Archiving
   * Collecting analytics
     * Logs (jbpm3, activiti dumping logs in elastic search)

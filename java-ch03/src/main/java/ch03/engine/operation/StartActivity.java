@@ -17,6 +17,8 @@ public class StartActivity extends Operation {
   @Override
   public void perform(Execution execution) {
     execution.setState(Starting.INSTANCE);
+    execution.collectInputs();
     activityInstance.activity.start(execution);
+    execution.propagateOutputs();
   }
 }
