@@ -1,25 +1,16 @@
 package ch03;
 
-import static org.junit.Assert.assertNotNull;
-
-import java.util.HashMap;
-import java.util.Map;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import ch03.data.DereferenceExpression;
 import ch03.data.InputExpression;
-import ch03.data.TypedValue;
+import ch03.data.LessThanExpression;
+import ch03.data.NameExpression;
+import ch03.data.PlusExpression;
+import ch03.data.TypedValueExpression;
 import ch03.data.expression.parser.ExpressionParser;
-import ch03.data.types.MapType;
-import ch03.data.types.NumberType;
-import ch03.data.types.StringType;
-import ch03.engine.Execution;
-import ch03.engine.context.MapContext;
-import ch03.model.ActivityInstance;
-import ch03.model.Workflow;
-import ch03.model.WorkflowInstance;
-import ch03.workflow.Console;
-import ch03.workflow.PrintLn;
 
 
 /**
@@ -27,12 +18,41 @@ import ch03.workflow.PrintLn;
  */
 public class ExpressionTest {
 
-  @Test
-  public void test() {
-    ExpressionParser expressionParser = new ExpressionParser();
-    // expressionParser.parseInputExpression("varOne.j + varTwo.x.y");
-    expressionParser.parseInputExpression("varOne.j + [ a, b.c, d ] + varTwo.x.y");
+  static ExpressionParser expressionParser = new ExpressionParser();
 
+  // @Test
+  public void testLessThan() {
+    LessThanExpression lessThanExpression = (LessThanExpression) parse("$v < $w");
+    NameExpression l = (NameExpression) lessThanExpression.getLeft();
+    assertEquals("v", l.getName());
+    NameExpression r = (NameExpression) lessThanExpression.getRight();
+    assertEquals("w", r.getName());
+  }
+
+  // @Test
+  public void testDereference() {
+    DereferenceExpression dereferenceExpression = (DereferenceExpression) parse("$v.f");
+    assertEquals("f", dereferenceExpression.getKey());
+    NameExpression l = (NameExpression) dereferenceExpression.getExpression();
+    assertEquals("v", l.getName());
+  }
+
+  @Test
+  public void testPlus() {
+    PlusExpression plusExpression = (PlusExpression) parse("$v + \"w\" + $x");
+    NameExpression x = (NameExpression) plusExpression.getLeft();
+    assertEquals("v", x.getName());
+
+    PlusExpression rightPlus = (PlusExpression) plusExpression.getRight();
+
+    TypedValueExpression w = (TypedValueExpression) rightPlus.getLeft();
+    assertEquals("w", w.getValue());
+
+    NameExpression v = (NameExpression) rightPlus.getRight();
+    assertEquals("x", v.getName());
+  }
+
+  
 //    Console console = new Console();
 //    
 //    MapContext externalContext = new MapContext()
@@ -64,6 +84,9 @@ public class ExpressionTest {
 //    new Execution()
 //      .externalContext(externalContext)
 //      .handleActivityInstanceMessage(asyncActivityInstance);
+
+  protected InputExpression parse(String expressionText) {
+    return expressionParser.parseInputExpression(expressionText);
   }
 
 }

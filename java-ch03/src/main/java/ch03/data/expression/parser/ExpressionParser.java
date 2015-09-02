@@ -18,7 +18,7 @@ public class ExpressionParser {
     InputExpressionLexer l = new InputExpressionLexer(new ANTLRInputStream(expressionText));
     InputExpressionParser p = new InputExpressionParser(new CommonTokenStream(l));
     p.addParseListener(inputExpressionBuilder);
-    p.expression();
-    return null;
+    p.booleanExpression();
+    return inputExpressionBuilder.getExpression();
   }
 }
