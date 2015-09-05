@@ -173,6 +173,10 @@ end up as a series of blog posts or a book.
   * Message queues
   * Persistent timers
 
+# Architecture
+
+![Architecture](java-ch03/src/docs/Architecture.png "Architecture")
+
 # Links 
 
   * http://pegasus.isi.edu/
