@@ -1,6 +1,8 @@
 package ch03.engine.operation;
 
 import ch03.engine.Execution;
+import ch03.engine.ExecutionContextImpl;
+import ch03.engine.ExecutionControllerImpl;
 import ch03.engine.state.Starting;
 import ch03.model.ActivityInstance;
 
@@ -15,10 +17,10 @@ public class StartActivity extends Operation {
   }
   
   @Override
-  public void perform(Execution execution) {
-    execution.setState(Starting.INSTANCE);
-    execution.collectInputs();
-    activityInstance.activity.start(execution);
-    execution.propagateOutputs();
+  public void perform(Execution execution, ExecutionContextImpl context, ExecutionControllerImpl controller) {
+    controller.setState(Starting.INSTANCE);
+    execution.getInputs();
+    activityInstance.activity.start(activityInstance, execution.getExecutionContext(), execution.getExecutionController());
+    execution.setOutputs();
   }
 }

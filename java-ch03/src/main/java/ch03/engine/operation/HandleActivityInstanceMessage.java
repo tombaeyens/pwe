@@ -4,6 +4,8 @@ import java.util.Map;
 
 import ch03.data.TypedValue;
 import ch03.engine.Execution;
+import ch03.engine.ExecutionContextImpl;
+import ch03.engine.ExecutionControllerImpl;
 import ch03.model.ActivityInstance;
 
 
@@ -20,7 +22,7 @@ public class HandleActivityInstanceMessage extends Operation {
   }
 
   @Override
-  public void perform(Execution executionFlow) {
+  public void perform(Execution executionFlow, ExecutionContextImpl context, ExecutionControllerImpl controller) {
     // TODO
   }
 }

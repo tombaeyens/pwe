@@ -49,6 +49,28 @@ end up as a series of blog posts or a book.
   * Workflow instance models
     * Activity instance composition
     * Token / execution based approach
+    * Equivalence of Activity instance composition and token hierarchy.
+
+# Control flow 
+
+  * Mostly transitions are used to specify control flow
+  * Data availability interrupting control flow   
+
+# Activities
+
+  * Each 'language' has it's own set of activities
+  * Types
+    * Control flow activities are those that control the flow :)
+    * Functional activities typically perform an operatino on an external system or service
+    * Mixed: Sometimes activities combine functional behavior and control flow (eg all BPMN activities perform a fork at the end) 
+  * Engine must have a generic activity pluggability, no distinction between control flow and functional activities
+  * Functional activity pluggability
+  * UI pluggability requires a lot of information
+    * Name, description, icon 
+    * A description of the configuration options.  UI will produce a config form.
+    * A description of the input/output parameters.
+    * Type descriptors for input/output parameters for expression dereferencing
+    * Workflow variables become like an ESB
 
 # Concurrency aspects
 
@@ -111,16 +133,29 @@ end up as a series of blog posts or a book.
 
 # Interacting with external services
 
+  * Activity worker types
+    * Hard coded service invocations
+      * Can use variables directly
+      * Alternative: customizable HTTP request configuration
+      * TODO pros/cons
+    * Central request list
+      * Like a task list for services
+      * Data is resolved in the activity and an request is persisted
+      * Activity workers perform competing consumers on the request list
+      * Activity workers only perform their own logic 
+      * TODO pros/cons
+    * Full activity workers
+      * Each activity worker is a full engine
+      * Competing consumers is done directly on the workflow instance
+      * Perform external service notifications after saving the new workflow state.
+      * When notifying an external service, make sure that the 
+        engine does this after the persistence of the current 
+        operarations has been completed and persisted.
+        Because the external service might be really quick.
+        And it might signal before the engine persists the 
+        new state.
+      * TODO pros/cons
   * Data mapping through parameters/bindings/expressions
-  * Hard coded service invocations
-    * Can use variables directly
-  * Perform external service notifications after saving the new workflow state.
-    * When notifying an external service, make sure that the 
-      engine does this after the persistence of the current 
-      operarations has been completed and persisted.
-      Because the external service might be really quick.
-      And it might signal before the engine persists the 
-      new state.
   * Generic input and output parameters
     * Activities describe which input and output parameters they have
     * They are implemented like function calls with fixed names for inputs and outputs
@@ -149,6 +184,9 @@ end up as a series of blog posts or a book.
       * Idempotent side effects
     * Dirty checking
     * Change logs
+    * Extending the workflow engine model
+      * Eg organizationId, access control
+      * Separate collections vs generic workflow model extension 
     * Combining change logs with the other approaches
     * Copying the workflow structure in the workflow instance
     * Archiving
@@ -173,10 +211,18 @@ end up as a series of blog posts or a book.
   * Message queues
   * Persistent timers
 
+# Scaling
+
+  * From simplest example: finite state machine persisted as a string field in an entity inside the user's domain model
+  * To Facebook scale
+  * Challenge: can we build a common basis that works for all these
+
 # Architecture
 
 ![Architecture](java-ch03/src/docs/Architecture.png "Architecture")
 
 # Links 
 
+  * http://blog.acolyer.org/2015/09/08/out-of-the-fire-swamp-part-i-the-data-crisis/
+  * http://blog.acolyer.org/2015/09/09/out-of-the-fire-swamp-part-ii-peering-into-the-mist/
   * http://pegasus.isi.edu/

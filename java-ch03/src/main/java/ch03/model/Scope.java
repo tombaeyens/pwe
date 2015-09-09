@@ -6,6 +6,8 @@ import java.util.Map;
 import ch03.data.InputExpression;
 import ch03.data.OutputExpression;
 import ch03.data.TypedValue;
+import ch03.engine.ExecutionContextImpl;
+import ch03.engine.ExecutionControllerImpl;
 import ch03.util.ApiException;
 
 
@@ -28,5 +30,13 @@ public abstract class Scope {
     activity.id = activityId;
     activities.put(activityId, activity);
     return activity;
+  }
+
+  public void activityInstanceEnded(
+          ActivityInstance endedActivityInstance, 
+          ScopeInstance parentInstance, 
+          ExecutionContextImpl executionContext,
+          ExecutionControllerImpl executionController) {
+    
   }
 }

@@ -12,7 +12,6 @@ import ch03.data.InputExpression;
 import ch03.data.OutputExpression;
 import ch03.data.TypedValue;
 import ch03.engine.context.Context;
-import ch03.engine.context.AllContexts;
 import ch03.engine.operation.HandleActivityInstanceMessage;
 import ch03.engine.operation.Operation;
 import ch03.engine.operation.StartActivity;
@@ -42,36 +41,16 @@ public class Execution {
   boolean isAsync = false;
   LinkedList<Operation> operations = null; // null is important. @see perform(Operation)
   LinkedList<Operation> asyncOperations = null;
-  AllContexts allContexts = new AllContexts(this);
-  Map<String, TypedValue> inputs;
-  Map<String, TypedValue> outputs;
+  ExecutionContextImpl executionContext = new ExecutionContextImpl(this);
+  ExecutionControllerImpl executionController = new ExecutionControllerImpl(this);
   
   WorkflowInstancePersistence persistence = null;
   Asynchronizer asynchronizer = null;
   
-  public AllContexts getAllContexts() {
-    return allContexts;
+  public ExecutionContextImpl getExecutionContext() {
+    return executionContext;
   }
   
-  /** fluent setter for the external context */
-  public Execution externalContext(Context externalContext) {
-    allContexts.addExternal(externalContext);
-    return this;
-  }
-  
-  public Context getExternalContext() {
-    return allContexts.getExternalContext();
-  }
-  
-  public Object findExternally(String key) {
-    Context externalContext = getExternalContext();
-    return externalContext!=null ? externalContext.get(key) : null;
-  }
-  
-  public <T> T findExternally(Class<T> type) {
-    return (T) findExternally(type.getName());
-  }
-
   public WorkflowInstance startWorkflowInstance(Workflow workflow) {
     return startWorkflowInstance(workflow, null, null);
   }
@@ -110,31 +89,6 @@ public class Execution {
     return activityInstance.getWorkflowInstance();
   }
   
-  public Map<String,TypedValue> getInputs() {
-    Map<String,TypedValue> inputs = new LinkedHashMap<>();
-    Map<String,InputExpression> inputParameters = scopeInstance.scope.inputParameters;
-    for (String key: inputParameters.keySet()) {
-      InputExpression inputExpression = inputParameters.get(key);
-      TypedValue typedValue = inputExpression.getTypedValue(allContexts);
-      inputs.put(key, typedValue);
-    }
-    return inputs;
-  }
-  
-  public void setOutputs(Map<String,TypedValue> outputs) {
-    Map<String,OutputExpression> outputParameters = scopeInstance.scope.outputParameters;
-    for (String key: outputParameters.keySet()) {
-      TypedValue typedValue = outputs.get(key);
-      OutputExpression outputExpression = outputParameters.get(key);
-      if (outputExpression!=null) {
-        outputExpression.setTypedValue(allContexts, typedValue);
-      } else {
-        VariableInstance variableInstance = scopeInstance.findVariableInstanceByVariableIdRecursive(key);
-        setVariableInstanceValue(variableInstance, typedValue);
-      }
-    }
-  }
-  
   public void enterScope() {
     Map<String,Variable> variables = scopeInstance.scope.variables;
     for (String key: variables.keySet()) {
@@ -171,125 +125,6 @@ public class Execution {
   
   public void leaveScope(Context context) {
   }
-
-  /** starts the given scope */
-  public ActivityInstance startActivity(Activity activity) {
-    return startActivity(activity, this.scopeInstance);
-  }
-
-  /** starts the given scope */
-  public ActivityInstance startActivity(Activity activity, ScopeInstance parentScopeInstance) {
-    if (activity==null || !isConditionMet(activity.condition, parentScopeInstance)) {
-      return null;
-    }
-    ActivityInstance activityInstance = instantiateActivityInstance();
-    activityInstance.scope = activity;
-    activityInstance.activity = activity;
-    activityInstance.state = new Created();
-    activityInstance.parent = parentScopeInstance;
-    parentScopeInstance.activityInstances.add(activityInstance);
-    activityInstance.id = persistence.generateActivityInstanceId(activityInstance);
-
-    persistence.activityInstanceCreated(activityInstance);
-    
-    perform(new StartActivity(activityInstance));
-    
-    return activityInstance;
-  }
-
-  public List<ActivityInstance> startActivities(List<Activity> activities) {
-    List<ActivityInstance> activityInstances = new ArrayList<>();
-    if (!activities.isEmpty()) {
-      // for each nested activity 
-      for (Activity activity: activities) {
-        ActivityInstance activityInstance = startActivity(activity);
-        if (activityInstance!=null) {
-          activityInstances.add(activityInstance);
-        }
-      }
-    }
-    return activityInstances;
-  }
-  
-  /** ends the activity instance and propagates the execution flow to the parent */
-  public void end() {
-    endScopeInstance();
-    ScopeInstance parent = scopeInstance.getParent();
-    if (parent!=null) {
-      scopeInstance = parent;
-    }
-  }
-
-  /** takes the outgoing applicable transitions if there are any 
-   * or propagates the execution flow to the parent otherwise */
-  public void onwards() {
-    List<Transition> transitionsToTake = new ArrayList<>();
-    Activity activity = ((ActivityInstance)scopeInstance).activity;
-    for (Transition outTransition: activity.outTransitions) {
-      if (isConditionMet(outTransition.condition, scopeInstance)) {
-        transitionsToTake.add(outTransition);
-      }
-    }
-    if (!transitionsToTake.isEmpty()) {
-      takeTransitions(transitionsToTake);
-    } else {
-      end();
-    }
-  }
-
-  protected boolean isConditionMet(Condition condition, ScopeInstance scopeInstance) {
-    if (condition==null) {
-      return true;
-    }
-    return condition.evaluate(allContexts);
-  }
-
-  /** takes the given transitions if there are any 
-   * or propagates the execution flow to the parent otherwise */
-  public List<ActivityInstance> takeTransitions(List<Transition> transitions) {
-    endScopeInstance();
-    List<ActivityInstance> activityInstances = new ArrayList<>();
-    if (transitions!=null) {
-      for (Transition transition : transitions) {
-        ActivityInstance activityInstance = takeTransition(transition);
-        if (activityInstance!=null) {
-          activityInstances.add(activityInstance);
-        }
-      }
-    }
-    return activityInstances;
-  }
-
-  public ActivityInstance takeTransition(Transition transition) {
-    endScopeInstance();
-    if (transition==null
-        || transition.to==null
-        || !isConditionMet(transition.condition, scopeInstance)) {
-      return null;
-    }
-    return startActivity(transition.to, scopeInstance.getParent());
-  }
-
-  protected void endScopeInstance() {
-    if (!scopeInstance.isEnded()) {
-      scopeInstance.state = new Ended();
-      if (scopeInstance instanceof ActivityInstance) {
-        persistence.activityInstanceEnded((ActivityInstance)scopeInstance);
-      } else {
-        persistence.workflowInstanceEnded((WorkflowInstance)scopeInstance);
-      }
-    }
-  }
-
-  public void setState(ExecutionState state) {
-    ExecutionState oldState = scopeInstance.state; 
-    scopeInstance.state = state;
-    if (scopeInstance instanceof ActivityInstance) {
-      persistence.activityInstanceStateUpdate((ActivityInstance)scopeInstance, oldState);
-    } else {
-      persistence.workflowInstanceStateUpdate((WorkflowInstance)scopeInstance, oldState);
-    }
-  }
   
   protected void perform(Operation operation) {
     if (operations==null) {
@@ -321,8 +156,8 @@ public class Execution {
       persistence.savePoint(scopeInstance.getWorkflowInstance(), operations, asyncOperations);
       Operation current = operations.removeFirst();
       persistence.operationSynchronousRemoved(current);
-      this.scopeInstance = current.getScopeInstance();
-      current.perform(this);
+      this.scopeInstance = current.getActivityInstance();
+      current.perform(this, executionContext, executionController);
     }
   }
 
@@ -354,7 +189,7 @@ public class Execution {
   }
   
   public TypedValue getTypedValue(String key) {
-    return allContexts.get(key);
+    return executionContext.get(key);
   }
 
   public Object getValue(String key) {
@@ -363,23 +198,17 @@ public class Execution {
   }
 
   public TypedValue getTypedValue(InputExpression expression) {
-    return expression.getTypedValue(allContexts);
+    return expression.getTypedValue(executionContext);
   }
 
   public Object getValue(InputExpression expression) {
-    TypedValue typedValue = expression.getTypedValue(allContexts);
+    TypedValue typedValue = expression.getTypedValue(executionContext);
     return typedValue!=null ? typedValue.getValue() : null;
   }
 
   /** moves the position of the execution up one level to the parent of the current scopeInstance */
   public void up() {
     scopeInstance = scopeInstance.parent;
-  }
-
-  /** puts the current execution flow on hold in the current activity instance till 
-   * an external service signals completion */
-  public void waitForExternalMessage() {
-    scopeInstance.state = new WaitingForMessage(); 
   }
 
   protected WorkflowInstance instantiateWorkflowInstance() {
@@ -394,29 +223,64 @@ public class Execution {
     return new VariableInstance();
   }
 
-  public void collectInputs() {
-    inputs = new HashMap<>();
-    outputs = new HashMap<>();
-    ActivityInstance activityInstance = (ActivityInstance) scopeInstance;
-    Activity activity = activityInstance.activity;
-    if (activity.inputBindings!=null) {
-      for (String inputKey: activity.inputBindings.keySet()) {
-        InputExpression inputBinding = activity.inputBindings.get(inputKey);
-        TypedValue input = inputBinding.getTypedValue(allContexts);
-        inputs.put(inputKey, input);
-      }
-    }
+  public ScopeInstance getScopeInstance() {
+    return scopeInstance;
   }
 
-  public void propagateOutputs() {
-    ActivityInstance activityInstance = (ActivityInstance) scopeInstance;
-    Activity activity = activityInstance.activity;
-    if (!outputs.isEmpty() && activity.outputBindings!=null) {
-      for (String outputKey: outputs.keySet()) {
-        TypedValue output = outputs.get(outputKey);
-        OutputExpression outputBinding = activity.outputBindings.get(outputKey);
-        outputBinding.setTypedValue(allContexts, output);
+  
+  public boolean isAsync() {
+    return isAsync;
+  }
+
+  
+  public LinkedList<Operation> getOperations() {
+    return operations;
+  }
+
+  
+  public LinkedList<Operation> getAsyncOperations() {
+    return asyncOperations;
+  }
+
+  public WorkflowInstancePersistence getPersistence() {
+    return persistence;
+  }
+
+  
+  public Asynchronizer getAsynchronizer() {
+    return asynchronizer;
+  }
+
+  public void getInputs() {
+    Map<String,TypedValue> inputs = new LinkedHashMap<>();
+    Map<String,InputExpression> inputParameters = scopeInstance.scope.inputParameters;
+    for (String key: inputParameters.keySet()) {
+      InputExpression inputExpression = inputParameters.get(key);
+      TypedValue typedValue = inputExpression.getTypedValue(executionContext);
+      inputs.put(key, typedValue);
+    }
+    executionContext.setInputs(inputs);
+    executionContext.setOutputs(new HashMap<String,TypedValue>());
+  }
+
+  public void setOutputs() {
+    Map<String,TypedValue> outputs = executionContext.getOutputs();
+    Map<String,OutputExpression> outputParameters = scopeInstance.scope.outputParameters;
+    for (String key: outputParameters.keySet()) {
+      TypedValue typedValue = outputs.get(key);
+      OutputExpression outputExpression = outputParameters.get(key);
+      if (outputExpression!=null) {
+        outputExpression.setTypedValue(executionContext, typedValue);
+      } else {
+        VariableInstance variableInstance = scopeInstance.findVariableInstanceByVariableIdRecursive(key);
+        setVariableInstanceValue(variableInstance, typedValue);
       }
     }
+    executionContext.setInputs(null);
+    executionContext.setOutputs(null);
+  }
+
+  public ExecutionControllerImpl getExecutionController() {
+    return executionController;
   }
 }

@@ -5,6 +5,8 @@ import java.util.Map;
 
 import ch03.data.TypedValue;
 import ch03.engine.Execution;
+import ch03.engine.ExecutionContextImpl;
+import ch03.engine.ExecutionControllerImpl;
 import ch03.model.Activity;
 import ch03.model.ScopeInstance;
 import ch03.model.Trigger;
@@ -29,12 +31,12 @@ public class StartWorkflowInstance extends Operation {
   }
   
   @Override
-  public ScopeInstance getScopeInstance() {
+  public ScopeInstance getActivityInstance() {
     return workflowInstance;
   }
 
   @Override
-  public void perform(Execution execution) {
+  public void perform(Execution execution, ExecutionContextImpl context, ExecutionControllerImpl controller) {
     Workflow workflow = workflowInstance.workflow;
     Trigger trigger = workflow.trigger;
     if (trigger!=null) {
@@ -48,7 +50,6 @@ public class StartWorkflowInstance extends Operation {
     if (startActivities==null) {
       startActivities = workflow.getStartActivities();
     }
-    execution.startActivities(startActivities);
+    controller.startActivities(startActivities);
   }
-
 }

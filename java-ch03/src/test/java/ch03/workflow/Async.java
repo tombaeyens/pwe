@@ -1,7 +1,9 @@
 package ch03.workflow;
 
-import ch03.engine.Execution;
+import ch03.engine.ExecutionContext;
+import ch03.engine.ExecutionController;
 import ch03.model.Activity;
+import ch03.model.ActivityInstance;
 
 
 /** external activity (wait state) */
@@ -11,10 +13,8 @@ import ch03.model.Activity;
 public class Async extends Activity {
 
   @Override
-  public void start(Execution execution) {
-    
-    
-    execution.waitForExternalMessage();
+  public void start(ActivityInstance activityInstance, ExecutionContext context, ExecutionController controller) {
+    controller.waitForExternalMessage();
 
     // External continuation has an engine defined reference
     // the activity could pass the engine defined reference externally 

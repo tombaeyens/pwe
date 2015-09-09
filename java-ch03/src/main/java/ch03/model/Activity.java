@@ -1,14 +1,11 @@
 package ch03.model;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import ch03.data.Condition;
-import ch03.data.InputExpression;
-import ch03.data.OutputExpression;
-import ch03.engine.Execution;
+import ch03.engine.ExecutionContext;
+import ch03.engine.ExecutionController;
 
 /**
  * @author Tom Baeyens
@@ -16,8 +13,6 @@ import ch03.engine.Execution;
 public class Activity extends Scope {
 
   public Condition condition;
-  public Map<String,InputExpression> inputBindings = new LinkedHashMap<>();
-  public Map<String,OutputExpression> outputBindings = new LinkedHashMap<>();
   public Scope parent;
   public List<Transition> inTransitions = new ArrayList<>();
   public List<Transition> outTransitions = new ArrayList<>();
@@ -31,16 +26,18 @@ public class Activity extends Scope {
     return transition;
   }
   
-  public Activity inputBinding(String key, InputExpression inputExpression) {
-    inputBindings.put(key, inputExpression);
-    return this;
+  /** @param activityInstance is part of the read-only data structure representing the workflow instance.
+   * @param context provides read/write access to variables, read access to configuration and external context.
+   * @param controller provides primitive operations to control the flow of execution. */
+  public void start(ActivityInstance activityInstance, ExecutionContext context, ExecutionController controller) {
   }
 
-  public Activity outputBinding(String key, OutputExpression outputExpression) {
-    outputBindings.put(key, outputExpression);
-    return this;
-  }
-
-  public void start(Execution execution) {
+  public void onwards(ActivityInstance activityInstance, ExecutionContext context, ExecutionController controller) {
+    List<Transition> activatedOutgoingTransitions = context.getOutgoingTransitionsMeetingCondition();
+    if (!activatedOutgoingTransitions.isEmpty()) {
+      controller.takeTransitions(activatedOutgoingTransitions);
+    } else {
+      controller.notifyParentActivityInstanceEnded();
+    }
   }
 }

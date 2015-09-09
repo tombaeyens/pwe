@@ -3,6 +3,8 @@ package ch03.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import ch03.engine.ExecutionContext;
+import ch03.engine.ExecutionController;
 import ch03.engine.WorkflowInstancePersistence;
 
 
@@ -31,6 +33,9 @@ public class Workflow extends Scope {
       }
     }
     return startActivities;
+  }
+
+  public void onwards(WorkflowInstance workflowInstance, ExecutionContext context, ExecutionController controller) {
   }
 
 }

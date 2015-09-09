@@ -13,7 +13,7 @@ public class PrintLn extends Activity {
 
   @Override
   public void start(Execution execution) {
-    execution.getAllContexts().get("external");
+    execution.getExecutionContext().get("external");
     super.start(execution);
   }
 
