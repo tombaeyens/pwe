@@ -13,7 +13,7 @@ import ch03.model.WorkflowInstance;
 /**
  * @author Tom Baeyens
  */
-public interface WorkflowInstancePersistence {
+public interface ExecutionListener {
 
   String generateWorkflowInstanceId(WorkflowInstance workflowInstance);
 

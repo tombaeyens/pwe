@@ -11,16 +11,16 @@ import ch03.model.ScopeInstance;
 /**
  * @author Tom Baeyens
  */
-public class ScopeInstanceEnded extends Operation {
+public class FlowEnded extends Operation {
 
-  public ScopeInstanceEnded(ActivityInstance endedActivityInstance) {
+  public FlowEnded(ActivityInstance endedActivityInstance) {
     super(endedActivityInstance);
   }
 
   @Override
   public void perform(Execution execution, ExecutionContextImpl context, ExecutionControllerImpl controller) {
-    ScopeInstance parentInstance = activityInstance.getParent();
-    Scope parentScope = parentInstance.scope;
-    parentScope.activityInstanceEnded(activityInstance, parentInstance, execution.getExecutionContext(), execution.getExecutionController());
+    ScopeInstance parentInstance = scopeInstance.getParent();
+    Scope parentScope = parentInstance.getScope();
+    parentScope.activityInstanceEnded((ActivityInstance)scopeInstance, parentInstance, execution.getExecutionContext(), execution.getExecutionController());
   }
 }

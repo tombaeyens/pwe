@@ -8,7 +8,6 @@ import ch03.engine.Execution;
 import ch03.engine.ExecutionContextImpl;
 import ch03.engine.ExecutionControllerImpl;
 import ch03.model.Activity;
-import ch03.model.ScopeInstance;
 import ch03.model.Trigger;
 import ch03.model.Workflow;
 import ch03.model.WorkflowInstance;
@@ -24,17 +23,12 @@ public class StartWorkflowInstance extends Operation {
   WorkflowInstance workflowInstance;
   
   public StartWorkflowInstance(WorkflowInstance workflowInstance, Map<String, TypedValue> startData, List<Activity> startActivities) {
-    super(null);
+    super(workflowInstance);
     this.workflowInstance = workflowInstance;
     this.startData = startData;
     this.startActivities = startActivities;
   }
   
-  @Override
-  public ScopeInstance getActivityInstance() {
-    return workflowInstance;
-  }
-
   @Override
   public void perform(Execution execution, ExecutionContextImpl context, ExecutionControllerImpl controller) {
     Workflow workflow = workflowInstance.workflow;

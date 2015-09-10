@@ -1,7 +1,9 @@
 package ch03.workflow;
 
-import ch03.engine.Execution;
+import ch03.engine.ExecutionContext;
+import ch03.engine.ExecutionController;
 import ch03.model.Activity;
+import ch03.model.ActivityInstance;
 import ch03.service.TaskService;
 
 
@@ -11,10 +13,9 @@ import ch03.service.TaskService;
 public class TaskActivity extends Activity {
 
   @Override
-  public void start(Execution execution) {
-    TaskService taskService = execution.findExternally(TaskService.class);
-    
-    execution.onwards();
+  public void start(ActivityInstance activityInstance, ExecutionContext context, ExecutionController controller) {
+    TaskService taskService = context.findExternally(TaskService.class);
+    // TODO
+    controller.onwards();
   }
-  
 }

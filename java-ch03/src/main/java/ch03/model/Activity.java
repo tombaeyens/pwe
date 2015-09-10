@@ -33,11 +33,17 @@ public class Activity extends Scope {
   }
 
   public void onwards(ActivityInstance activityInstance, ExecutionContext context, ExecutionController controller) {
-    List<Transition> activatedOutgoingTransitions = context.getOutgoingTransitionsMeetingCondition();
-    if (!activatedOutgoingTransitions.isEmpty()) {
-      controller.takeTransitions(activatedOutgoingTransitions);
-    } else {
-      controller.notifyParentActivityInstanceEnded();
-    }
+    List<Transition> outgoingTransitions = activityInstance.activity.outTransitions;
+    controller.takeTransitions(outgoingTransitions);
+  }
+
+  @Override
+  public boolean isActivity() {
+    return true;
+  }
+
+  @Override
+  public boolean isWorkflow() {
+    return false;
   }
 }

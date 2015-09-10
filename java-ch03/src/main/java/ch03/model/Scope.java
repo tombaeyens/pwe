@@ -39,4 +39,76 @@ public abstract class Scope {
           ExecutionControllerImpl executionController) {
     
   }
+  
+  public abstract boolean isActivity();
+  public abstract boolean isWorkflow();
+
+  
+  public String getId() {
+    return id;
+  }
+
+  
+  public void setId(String id) {
+    this.id = id;
+  }
+
+  
+  public Map<String, TypedValue> getConfiguration() {
+    return configuration;
+  }
+
+  
+  public void setConfiguration(Map<String, TypedValue> configuration) {
+    this.configuration = configuration;
+  }
+
+  
+  public Map<String, InputExpression> getInputParameters() {
+    return inputParameters;
+  }
+
+  
+  public void setInputParameters(Map<String, InputExpression> inputParameters) {
+    this.inputParameters = inputParameters;
+  }
+
+  
+  public Map<String, OutputExpression> getOutputParameters() {
+    return outputParameters;
+  }
+
+  
+  public void setOutputParameters(Map<String, OutputExpression> outputParameters) {
+    this.outputParameters = outputParameters;
+  }
+
+  
+  public Map<String, Activity> getActivities() {
+    return activities;
+  }
+
+  
+  public void setActivities(Map<String, Activity> activities) {
+    this.activities = activities;
+  }
+
+  
+  public Map<String, Variable> getVariables() {
+    return variables;
+  }
+
+  
+  public void setVariables(Map<String, Variable> variables) {
+    this.variables = variables;
+  }
+
+  
+  public Map<String, Object> getProperties() {
+    return properties;
+  }
+  
+  public void setProperties(Map<String, Object> properties) {
+    this.properties = properties;
+  }
 }

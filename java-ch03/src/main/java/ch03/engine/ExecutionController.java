@@ -3,6 +3,7 @@ package ch03.engine;
 import java.util.List;
 
 import ch03.model.Activity;
+import ch03.model.ActivityInstance;
 import ch03.model.ScopeInstance;
 import ch03.model.Transition;
 
@@ -12,20 +13,20 @@ import ch03.model.Transition;
 public interface ExecutionController {
 
   /** starts the given scope */
-  void startActivity(Activity activity);
+  ActivityInstance startActivity(Activity activity);
 
   /** starts the given scope */
-  void startActivity(Activity activity, ScopeInstance parentScopeInstance);
+  ActivityInstance startActivity(Activity activity, ScopeInstance parentScopeInstance);
 
-  void startActivities(List<Activity> activities);
+  List<ActivityInstance> startActivities(List<Activity> activities);
 
   void waitForExternalMessage();
   
-  void takeTransitions(List<Transition> transitionsToTake);
+  List<ActivityInstance> takeTransitions(List<Transition> transitionsToTake);
   
-  void takeTransition(Transition transition);
+  ActivityInstance takeTransition(Transition transition);
   
   void onwards();
 
-  void notifyParentActivityInstanceEnded();
+  void notifyParentFlowEnded();
 }

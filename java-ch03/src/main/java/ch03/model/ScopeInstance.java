@@ -12,15 +12,18 @@ import ch03.util.ApiException;
 /**
  * @author Tom Baeyens
  */
-public class ScopeInstance {
+public abstract class ScopeInstance {
   
-  public String id;
-  public Scope scope;
-  public ScopeInstance parent;
-  public List<ActivityInstance> activityInstances = new ArrayList<>();
+  protected String id;
+  protected Scope scope;
+  protected ScopeInstance parent;
+  protected List<ActivityInstance> activityInstances = new ArrayList<>();
   /** variable instances by variable.id (not by variableInstance.id) */
-  public Map<String,VariableInstance> variableInstances = new LinkedHashMap<>();
-  public ExecutionState state;
+  protected Map<String,VariableInstance> variableInstances = new LinkedHashMap<>();
+  protected ExecutionState state;
+  
+  public abstract boolean isActivityInstance();
+  public abstract boolean isWorkflowInstance();
   
   public boolean isEnded() {
     return state.isEnded();
@@ -74,5 +77,49 @@ public class ScopeInstance {
       return parent.findVariableInstanceByVariableIdRecursive(variableId);
     }
     return null;
+  }
+  
+  public String getId() {
+    return id;
+  }
+  
+  public void setId(String id) {
+    this.id = id;
+  }
+  
+  public Scope getScope() {
+    return scope;
+  }
+  
+  public void setScope(Scope scope) {
+    this.scope = scope;
+  }
+  
+  public List<ActivityInstance> getActivityInstances() {
+    return activityInstances;
+  }
+  
+  public void setActivityInstances(List<ActivityInstance> activityInstances) {
+    this.activityInstances = activityInstances;
+  }
+  
+  public Map<String, VariableInstance> getVariableInstances() {
+    return variableInstances;
+  }
+  
+  public void setVariableInstances(Map<String, VariableInstance> variableInstances) {
+    this.variableInstances = variableInstances;
+  }
+  
+  public ExecutionState getState() {
+    return state;
+  }
+  
+  public void setState(ExecutionState state) {
+    this.state = state;
+  }
+  
+  public void setParent(ScopeInstance parent) {
+    this.parent = parent;
   }
 }

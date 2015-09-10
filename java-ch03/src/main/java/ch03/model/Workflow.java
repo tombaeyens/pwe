@@ -5,7 +5,7 @@ import java.util.List;
 
 import ch03.engine.ExecutionContext;
 import ch03.engine.ExecutionController;
-import ch03.engine.WorkflowInstancePersistence;
+import ch03.engine.ExecutionListener;
 
 
 /**
@@ -14,7 +14,7 @@ import ch03.engine.WorkflowInstancePersistence;
 public class Workflow extends Scope {
   
   public Trigger trigger;
-  public List<WorkflowInstancePersistence> listeners = new ArrayList<>();
+  public List<ExecutionListener> listeners = new ArrayList<>();
   public List<Activity> startActivities = null;
 
   public List<Activity> getStartActivities() {
@@ -38,4 +38,13 @@ public class Workflow extends Scope {
   public void onwards(WorkflowInstance workflowInstance, ExecutionContext context, ExecutionController controller) {
   }
 
+  @Override
+  public boolean isActivity() {
+    return false;
+  }
+  
+  @Override
+  public boolean isWorkflow() {
+    return true;
+  }
 }

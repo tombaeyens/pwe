@@ -139,7 +139,7 @@ public class ExecutionContextImpl implements Context, ExecutionContext {
 
   @Override
   public List<Transition> getOutgoingTransitionsMeetingCondition() {
-    Activity activity = (Activity) execution.scopeInstance.scope;
+    Activity activity = (Activity) execution.scopeInstance.getScope();
     if (activity.outTransitions.isEmpty()) {
       return activity.outTransitions;
     }

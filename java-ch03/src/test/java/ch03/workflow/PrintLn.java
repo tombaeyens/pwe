@@ -1,31 +1,18 @@
 package ch03.workflow;
 
-import ch03.data.InputExpression;
-import ch03.data.OutputExpression;
-import ch03.engine.Execution;
+import ch03.engine.ExecutionContext;
+import ch03.engine.ExecutionController;
 import ch03.model.Activity;
+import ch03.model.ActivityInstance;
 
 
 /**
  * @author Tom Baeyens
  */
 public class PrintLn extends Activity {
-
+  
   @Override
-  public void start(Execution execution) {
-    execution.getExecutionContext().get("external");
-    super.start(execution);
-  }
-
-  @Override
-  public PrintLn inputBinding(String key, InputExpression inputExpression) {
-    super.inputBinding(key, inputExpression);
-    return this;
-  }
-
-  @Override
-  public PrintLn outputBinding(String key, OutputExpression outputExpression) {
-    super.outputBinding(key, outputExpression);
-    return this;
+  public void start(ActivityInstance activityInstance, ExecutionContext context, ExecutionController controller) {
+    // TODO
   }
 }

@@ -7,7 +7,6 @@ import ch03.engine.ExecutionContext;
 import ch03.engine.ExecutionController;
 import ch03.model.Activity;
 import ch03.model.ActivityInstance;
-import ch03.model.ScopeInstance;
 import ch03.model.Transition;
 
 
@@ -22,7 +21,7 @@ public class BpmnActivity extends Activity {
                       ExecutionContext context,
                       ExecutionController controller) {
     List<Transition> transitionsToTake = new ArrayList<>();
-    Activity activity = activityInstance.activity;
+    Activity activity = activityInstance.getActivity();
     for (Transition outTransition: activity.outTransitions) {
       if (context.isConditionMet(outTransition.condition)) {
         transitionsToTake.add(outTransition);

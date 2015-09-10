@@ -1,30 +1,22 @@
 package ch03.engine;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import ch03.data.Condition;
 import ch03.data.InputExpression;
 import ch03.data.OutputExpression;
 import ch03.data.TypedValue;
 import ch03.engine.context.Context;
 import ch03.engine.operation.HandleActivityInstanceMessage;
 import ch03.engine.operation.Operation;
-import ch03.engine.operation.StartActivity;
 import ch03.engine.operation.StartWorkflowInstance;
-import ch03.engine.state.Created;
-import ch03.engine.state.Ended;
-import ch03.engine.state.ExecutionState;
 import ch03.engine.state.Starting;
-import ch03.engine.state.WaitingForMessage;
 import ch03.model.Activity;
 import ch03.model.ActivityInstance;
 import ch03.model.ScopeInstance;
-import ch03.model.Transition;
 import ch03.model.Variable;
 import ch03.model.VariableInstance;
 import ch03.model.Workflow;
@@ -41,12 +33,26 @@ public class Execution {
   boolean isAsync = false;
   LinkedList<Operation> operations = null; // null is important. @see perform(Operation)
   LinkedList<Operation> asyncOperations = null;
-  ExecutionContextImpl executionContext = new ExecutionContextImpl(this);
-  ExecutionControllerImpl executionController = new ExecutionControllerImpl(this);
-  
-  WorkflowInstancePersistence persistence = null;
+  ExecutionContextImpl executionContext = null;
+  ExecutionControllerImpl executionController = null;
+  ExecutionListener listener = null;
   Asynchronizer asynchronizer = null;
   
+  public Execution() {
+    initializeExecutionContext();
+    initializeExecutionController();
+  }
+  
+  /** can be overriden by subclasses to customize context behavior */
+  protected void initializeExecutionContext() {
+    executionContext = new ExecutionContextImpl(this);
+  }
+
+  /** can be overriden by subclasses to customize controller behavior */
+  protected void initializeExecutionController() {
+    executionController = new ExecutionControllerImpl(this);
+  }
+
   public ExecutionContextImpl getExecutionContext() {
     return executionContext;
   }
@@ -66,11 +72,11 @@ public class Execution {
     
     WorkflowInstance workflowInstance = instantiateWorkflowInstance();
     workflowInstance.workflow = workflow;
-    workflowInstance.scope = workflow;
-    workflowInstance.state = new Starting();
-    workflowInstance.id = persistence.generateWorkflowInstanceId(workflowInstance);
+    workflowInstance.setScope(workflow);
+    workflowInstance.setState(new Starting());
+    workflowInstance.setId(listener.generateWorkflowInstanceId(workflowInstance));
     
-    persistence.workflowInstanceCreated(workflowInstance);
+    listener.workflowInstanceCreated(workflowInstance);
 
     scopeInstance = workflowInstance;
     enterScope();
@@ -90,7 +96,7 @@ public class Execution {
   }
   
   public void enterScope() {
-    Map<String,Variable> variables = scopeInstance.scope.variables;
+    Map<String,Variable> variables = scopeInstance.getScope().getVariables();
     for (String key: variables.keySet()) {
       Variable variable = variables.get(key);
       createVariableInstance(variable);
@@ -101,8 +107,8 @@ public class Execution {
     VariableInstance variableInstance = instantiateVariableInstance();
     variableInstance.setVariable(variable);
     variableInstance.setScopeInstance(scopeInstance);
-    scopeInstance.variableInstances.put(variable.getId(), variableInstance);
-    variableInstance.setId(persistence.generateVariableInstanceId(variableInstance));
+    scopeInstance.getVariableInstances().put(variable.getId(), variableInstance);
+    variableInstance.setId(listener.generateVariableInstanceId(variableInstance));
     
     if (variable.getInitialValue()!=null) {
       variableInstance.setTypedValue(new TypedValue(variable.getType(), variable.getInitialValue()));
@@ -110,7 +116,7 @@ public class Execution {
       variableInstance.setTypedValue(getTypedValue(variable.getInitialValueExpression())); 
     }
 
-    persistence.variableInstanceCreated(variableInstance);
+    listener.variableInstanceCreated(variableInstance);
   }
 
   public void setVariableInstanceValue(String variableId, TypedValue typedValue) {
@@ -120,7 +126,7 @@ public class Execution {
 
   protected void setVariableInstanceValue(VariableInstance variableInstance, TypedValue newValue) {
     TypedValue oldValue = variableInstance.getTypedValue();
-    persistence.variableInstanceValueUpdated(variableInstance, oldValue);
+    listener.variableInstanceValueUpdated(variableInstance, oldValue);
   }
   
   public void leaveScope(Context context) {
@@ -141,9 +147,9 @@ public class Execution {
   protected void addOperation(Operation operation) {
     if (isAsync || operation.isSynchonrous()) {
       operations.add(operation);
-      persistence.operationSynchronousAdded(operation);
+      listener.operationSynchronousAdded(operation);
     } else {
-      persistence.operationAsynchronousAdded(operation);
+      listener.operationAsynchronousAdded(operation);
       asyncOperations.add(operation);
     }
   }
@@ -153,10 +159,10 @@ public class Execution {
       // This execution still has more work to do.
       // At this place the persistence is in a consistent state 
       // to be resumed later if things would crash further down.
-      persistence.savePoint(scopeInstance.getWorkflowInstance(), operations, asyncOperations);
+      listener.savePoint(scopeInstance.getWorkflowInstance(), operations, asyncOperations);
       Operation current = operations.removeFirst();
-      persistence.operationSynchronousRemoved(current);
-      this.scopeInstance = current.getActivityInstance();
+      listener.operationSynchronousRemoved(current);
+      this.scopeInstance = current.getScopeInstance();
       current.perform(this, executionContext, executionController);
     }
   }
@@ -169,7 +175,7 @@ public class Execution {
       asynchronizer.continueAsynchrous(this);
     }
     // No more work to be done
-    persistence.flush(scopeInstance.getWorkflowInstance());
+    listener.flush(scopeInstance.getWorkflowInstance());
   }
   
   /** It's the responsibility of the asynchronizer to call this 
@@ -208,7 +214,7 @@ public class Execution {
 
   /** moves the position of the execution up one level to the parent of the current scopeInstance */
   public void up() {
-    scopeInstance = scopeInstance.parent;
+    scopeInstance = scopeInstance.getParent();
   }
 
   protected WorkflowInstance instantiateWorkflowInstance() {
@@ -242,8 +248,8 @@ public class Execution {
     return asyncOperations;
   }
 
-  public WorkflowInstancePersistence getPersistence() {
-    return persistence;
+  public ExecutionListener getListener() {
+    return listener;
   }
 
   
@@ -253,7 +259,7 @@ public class Execution {
 
   public void getInputs() {
     Map<String,TypedValue> inputs = new LinkedHashMap<>();
-    Map<String,InputExpression> inputParameters = scopeInstance.scope.inputParameters;
+    Map<String,InputExpression> inputParameters = scopeInstance.getScope().getInputParameters();
     for (String key: inputParameters.keySet()) {
       InputExpression inputExpression = inputParameters.get(key);
       TypedValue typedValue = inputExpression.getTypedValue(executionContext);
@@ -265,7 +271,7 @@ public class Execution {
 
   public void setOutputs() {
     Map<String,TypedValue> outputs = executionContext.getOutputs();
-    Map<String,OutputExpression> outputParameters = scopeInstance.scope.outputParameters;
+    Map<String,OutputExpression> outputParameters = scopeInstance.getScope().getOutputParameters();
     for (String key: outputParameters.keySet()) {
       TypedValue typedValue = outputs.get(key);
       OutputExpression outputExpression = outputParameters.get(key);
