@@ -1,13 +1,16 @@
 package ch03.model;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import ch03.data.InputExpression;
 import ch03.data.OutputExpression;
 import ch03.data.TypedValue;
-import ch03.engine.ExecutionContextImpl;
-import ch03.engine.ExecutionControllerImpl;
+import ch03.engine.ControllerImpl;
+import ch03.engine.ContextImpl;
+import ch03.engine.ScopeListener;
 import ch03.util.ApiException;
 
 
@@ -20,6 +23,7 @@ public abstract class Scope {
   public Map<String,Activity> activities = new LinkedHashMap<>();
   public Map<String,Variable> variables = new LinkedHashMap<>();
   public Map<String,Object> properties = new LinkedHashMap<>();
+  public List<ScopeListener> scopeListeners = new ArrayList<>();
 
   public <T extends Activity> T add(String activityId, T activity) {
     ApiException.checkNotNullParameter(activityId, "activityId");
@@ -35,8 +39,8 @@ public abstract class Scope {
   public void activityInstanceEnded(
           ActivityInstance endedActivityInstance, 
           ScopeInstance parentInstance, 
-          ExecutionContextImpl executionContext,
-          ExecutionControllerImpl executionController) {
+          ContextImpl executionContext,
+          ControllerImpl executionController) {
     
   }
   
@@ -110,5 +114,14 @@ public abstract class Scope {
   
   public void setProperties(Map<String, Object> properties) {
     this.properties = properties;
+  }
+
+  
+  public List<ScopeListener> getScopeListeners() {
+    return scopeListeners;
+  }
+
+  public void setScopeListeners(List<ScopeListener> scopeListeners) {
+    this.scopeListeners = scopeListeners;
   }
 }

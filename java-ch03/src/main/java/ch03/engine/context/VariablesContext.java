@@ -1,18 +1,18 @@
 package ch03.engine.context;
 
 import ch03.data.TypedValue;
-import ch03.engine.Execution;
+import ch03.engine.Engine;
 
 
 /**
  * @author Tom Baeyens
  */
-public class ScopeContext implements Context {
+public class VariablesContext implements SubContext {
 
-  Execution execution;
+  Engine engine;
 
-  public ScopeContext(Execution execution) {
-    this.execution = execution;
+  public VariablesContext(Engine engine) {
+    this.engine = engine;
   }
 
   @Override
@@ -22,5 +22,10 @@ public class ScopeContext implements Context {
 
   @Override
   public void set(String key, TypedValue value) {
+  }
+
+  @Override
+  public String getName() {
+    return "variables";
   }
 }

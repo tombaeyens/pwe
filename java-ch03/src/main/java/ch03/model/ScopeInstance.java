@@ -24,6 +24,7 @@ public abstract class ScopeInstance {
   
   public abstract boolean isActivityInstance();
   public abstract boolean isWorkflowInstance();
+  public abstract WorkflowInstance getWorkflowInstance();
   
   public boolean isEnded() {
     return state.isEnded();
@@ -33,10 +34,6 @@ public abstract class ScopeInstance {
     return parent;
   }
   
-  public WorkflowInstance getWorkflowInstance() {
-    return parent.getWorkflowInstance();
-  }
-
   /** searches for the activity instance and recurses over the nested activity instances. */
   public ActivityInstance findActivityInstanceByActivityIdRecursive(String activityId) {
     ApiException.checkNotNullParameter(activityId, "activityId");

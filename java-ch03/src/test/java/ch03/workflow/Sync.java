@@ -1,7 +1,7 @@
 package ch03.workflow;
 
-import ch03.engine.ExecutionContext;
-import ch03.engine.ExecutionController;
+import ch03.engine.Context;
+import ch03.engine.Controller;
 import ch03.model.Activity;
 import ch03.model.ActivityInstance;
 
@@ -12,7 +12,7 @@ import ch03.model.ActivityInstance;
 public class Sync extends Activity {
   
   @Override
-  public void start(ActivityInstance activityInstance, ExecutionContext context, ExecutionController controller) {
+  public void start(ActivityInstance activityInstance, Context context, Controller controller) {
     // do some synchronous automatic stuff
     controller.onwards();
   }

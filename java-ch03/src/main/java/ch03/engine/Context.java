@@ -4,31 +4,22 @@ import java.util.List;
 
 import ch03.data.Condition;
 import ch03.data.TypedValue;
-import ch03.engine.context.Context;
+import ch03.engine.context.SubContext;
 import ch03.model.Transition;
 
 /**
  * @author Tom Baeyens
  */
-public interface ExecutionContext {
+public interface Context {
 
-  void addExternal(Context externalContext);
-
-  Context getExternalContext();
-
+  SubContext getExternalContext();
   Object findExternally(String key);
-
   <T> T findExternally(Class<T> type);
-
-  void add(String name, Context context);
-
-  void remove(String name);
 
   TypedValue get(String key);
 
   void set(String key, TypedValue value);
 
   boolean isConditionMet(Condition condition);
-  
   List<Transition> getOutgoingTransitionsMeetingCondition();
 }

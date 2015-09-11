@@ -10,7 +10,7 @@ import ch03.model.Transition;
 /**
  * @author Tom Baeyens
  */
-public interface ExecutionController {
+public interface Controller {
 
   /** starts the given scope */
   ActivityInstance startActivity(Activity activity);

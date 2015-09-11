@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import ch03.engine.context.Context;
+import ch03.engine.Context;
 
 
 /**

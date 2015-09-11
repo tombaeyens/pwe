@@ -8,6 +8,10 @@ public class ActivityInstance extends ScopeInstance {
   
   protected Activity activity;
   
+  public void handleMessage() {
+    
+  }
+  
   @Override
   public boolean isActivityInstance() {
     return true;
@@ -18,11 +22,14 @@ public class ActivityInstance extends ScopeInstance {
     return false;
   }
 
-  
+  @Override
+  public WorkflowInstance getWorkflowInstance() {
+    return parent.getWorkflowInstance();
+  }
+
   public Activity getActivity() {
     return activity;
   }
-
   
   public void setActivity(Activity activity) {
     this.activity = activity;

@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ch03.data.Condition;
-import ch03.engine.ExecutionContext;
-import ch03.engine.ExecutionController;
+import ch03.engine.Context;
+import ch03.engine.Controller;
 
 /**
  * @author Tom Baeyens
@@ -29,10 +29,10 @@ public class Activity extends Scope {
   /** @param activityInstance is part of the read-only data structure representing the workflow instance.
    * @param context provides read/write access to variables, read access to configuration and external context.
    * @param controller provides primitive operations to control the flow of execution. */
-  public void start(ActivityInstance activityInstance, ExecutionContext context, ExecutionController controller) {
+  public void start(ActivityInstance activityInstance, Context context, Controller controller) {
   }
 
-  public void onwards(ActivityInstance activityInstance, ExecutionContext context, ExecutionController controller) {
+  public void onwards(ActivityInstance activityInstance, Context context, Controller controller) {
     List<Transition> outgoingTransitions = activityInstance.activity.outTransitions;
     controller.takeTransitions(outgoingTransitions);
   }

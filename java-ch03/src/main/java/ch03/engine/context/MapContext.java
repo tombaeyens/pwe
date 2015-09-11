@@ -10,22 +10,14 @@ import ch03.data.types.JavaBeanType;
 /**
  * @author Tom Baeyens
  */
-public class MapContext implements Context {
+public class MapContext implements SubContext {
   
-  Map<Object,TypedValue> map;
+  String name;
+  Map<String,TypedValue> map;
   
-  public MapContext() {
-    this(null);
-  }
-
-  public MapContext(Map<String,Object> map) {
-    this.map = new LinkedHashMap<>();
-    if (map!=null) {
-      for (String key: map.keySet()) {
-        Object value = map.get(key);
-        this.map.put(key, TypedValue.getTypedValue(value));
-      }
-    }
+  public MapContext(String name, Map<String,TypedValue> map) {
+    this.name = name;
+    this.map = map;
   }
 
   @Override
@@ -47,5 +39,10 @@ public class MapContext implements Context {
   public MapContext put(Object bean) {
     set(bean.getClass().getName(), new TypedValue(new JavaBeanType(), bean));
     return this;
+  }
+
+  @Override
+  public String getName() {
+    return name;
   }
 }

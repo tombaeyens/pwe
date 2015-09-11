@@ -13,22 +13,19 @@ import ch03.model.WorkflowInstance;
 /**
  * @author Tom Baeyens
  */
-public interface ExecutionListener {
+public interface EngineListener {
 
-  String generateWorkflowInstanceId(WorkflowInstance workflowInstance);
-
-  String generateVariableInstanceId(VariableInstance variableInstance);
-
-  String generateActivityInstanceId(ActivityInstance activityInstance);
-
+  /** also must assign the id */
   void workflowInstanceCreated(WorkflowInstance workflowInstance);
 
-  /** implies variableInstanceValueUpdated for the initial value */
+  /** implies variableInstanceValueUpdated for the initial value. 
+   * also must assign the id */
   void variableInstanceCreated(VariableInstance variableInstance);
 
   /** variableInstance contains the new value */
   void variableInstanceValueUpdated(VariableInstance variableInstance, TypedValue oldValue);
 
+  /** also must assign the id */
   void activityInstanceCreated(ActivityInstance activityInstance);
 
   /** implies state update to ended */

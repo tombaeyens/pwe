@@ -35,6 +35,7 @@ end up as a series of blog posts or a book.
 # Workflow engine concepts
 
   * Minimal workflow engine as an example
+    * Tail recursion (call stack) vs atomic operations --> new minimal version (ch01.2) with atomic operations?
   * Workflow models
     * Activity composition
     * Activity configuration
@@ -54,7 +55,12 @@ end up as a series of blog posts or a book.
 # Control flow 
 
   * Mostly transitions are used to specify control flow
-  * Data availability interrupting control flow   
+  * Data availability interrupting control flow
+  * Exception handling
+    * Programming language level exceptions occur because of bugs, unvailability of services, wrong workflow configuration, etc
+    * Workflow language can define it's own exception handling (like BPMN events) 
+    * Programming language level exceptions, but also plain code logic can lead to workflow language exceptions
+    * Programming language level exceptions might be handled by logging (see below) and then parking the workflow instance into an error state so that an admin can intervene. 
 
 # Activities
 
@@ -71,6 +77,8 @@ end up as a series of blog posts or a book.
     * A description of the input/output parameters.
     * Type descriptors for input/output parameters for expression dereferencing
     * Workflow variables become like an ESB
+  * Logging
+    * Activities should be able to add logging for debugging, runtime trouble shooting
 
 # Concurrency aspects
 
@@ -164,13 +172,21 @@ end up as a series of blog posts or a book.
     * A workflow-engine-generated reference to the activity instance can be passed to the external service.  the external service then has to pass it back when signalling completion of the external activity.
     * Alternatively, the activity can set business data on the async continuation. (aka correlation data).  That way, the external service doesn't have to have the engine generated reference to the activity id.  But it can find the async continuation based on the business data it already has.
 
+# Workflow engine API
+
+  * deploy a workflow
+    * workflow versioning
+    * instance migration
+    * workflow part of a larger application? 
+  * start a workflow instance
+  * send a message to signal the end of an activity instance
+  * create a new data type dynamically
+  * create a new activity type dynamically
+
 # Implementation aspects
 
-  * Tail recursion (call stack) vs atomic operations
-  * Workflow engine API
-    * deploy a workflow
-    * start a workflow instance
-    * send a message to signal the end of an activity instance
+  * Multi tenancy
+  * Access control
   * Persistence
     * Store, load and resume execution
     * Transactional workflow instance state changes
@@ -199,7 +215,6 @@ end up as a series of blog posts or a book.
     * Often, runtime data structures are not optimal
     * Duplication  
     * Can be based on listener or transaction logs
-  * Access control
   * BPEL style correlation
     * Activity instance correlation for continuation messages (makes sense)
     * Trigger correlation for starting a process based on arbitrary messages (doesn't make sense ==> use an event listener inbetween that listens and converts) 

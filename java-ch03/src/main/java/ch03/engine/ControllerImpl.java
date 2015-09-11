@@ -5,9 +5,11 @@ import java.util.List;
 
 import ch03.engine.operation.FlowEnded;
 import ch03.engine.operation.StartActivity;
+import ch03.engine.operation.StartWorkflow;
 import ch03.engine.state.Created;
 import ch03.engine.state.Ended;
 import ch03.engine.state.ExecutionState;
+import ch03.engine.state.Starting;
 import ch03.engine.state.WaitingForMessage;
 import ch03.model.Activity;
 import ch03.model.ActivityInstance;
@@ -20,22 +22,38 @@ import ch03.model.WorkflowInstance;
 /**
  * @author Tom Baeyens
  */
-public class ExecutionControllerImpl implements ExecutionController {
+public class ControllerImpl implements Controller {
   
-  Execution execution;
-  ExecutionContextImpl context;
-  ExecutionListener listener;
+  Engine engine;
+  ContextImpl context;
+  EngineListener engineListener;
 
-  public ExecutionControllerImpl(Execution execution) {
-    this.execution = execution;
-    this.context = execution.executionContext;
-    this.listener = execution.listener;
+  public ControllerImpl(Engine engine) {
+    this.engine = engine;
+    this.context = engine.context;
+    this.engineListener = engine.engineListener;
+  }
+
+  public WorkflowInstance createWorkfowInstance(Workflow workflow) {
+    WorkflowInstance workflowInstance = engine.instantiateWorkflowInstance();
+    workflowInstance.setEngine(engine);
+    workflowInstance.setWorkflow(workflow);
+    workflowInstance.setScope(workflow);
+    workflowInstance.setState(new Starting());
+    engineListener.workflowInstanceCreated(workflowInstance);
+    engine.setScopeInstance(workflowInstance);
+    engine.enterScope();
+    return workflowInstance;
+  }
+
+  public void startActivities(WorkflowInstance workflowInstance, List<Activity> startActivities) {
+    engine.perform(new StartWorkflow(workflowInstance, startActivities));
   }
 
   /** starts the given scope */
   @Override
   public ActivityInstance startActivity(Activity activity) {
-    return startActivity(activity, execution.scopeInstance);
+    return startActivity(activity, engine.scopeInstance);
   }
 
   /** starts the given scope */
@@ -44,17 +62,16 @@ public class ExecutionControllerImpl implements ExecutionController {
     if (activity==null || !context.isConditionMet(activity.condition)) {
       return null;
     }
-    ActivityInstance activityInstance = execution.instantiateActivityInstance();
+    ActivityInstance activityInstance = engine.instantiateActivityInstance();
     activityInstance.setScope(activity);
     activityInstance.setActivity(activity);
     activityInstance.setState(new Created());
     activityInstance.setParent(parentScopeInstance);
     parentScopeInstance.getActivityInstances().add(activityInstance);
-    activityInstance.setId(listener.generateActivityInstanceId(activityInstance));
 
-    listener.activityInstanceCreated(activityInstance);
+    engineListener.activityInstanceCreated(activityInstance);
     
-    execution.perform(new StartActivity(activityInstance));
+    engine.perform(new StartActivity(activityInstance));
     
     return activityInstance;
   }
@@ -153,7 +170,7 @@ public class ExecutionControllerImpl implements ExecutionController {
   @Override
   public void onwards() {
     endScopeInstance();
-    ScopeInstance scopeInstance = execution.scopeInstance;
+    ScopeInstance scopeInstance = engine.scopeInstance;
     if (scopeInstance instanceof ActivityInstance) {
       ActivityInstance activityInstance = (ActivityInstance) scopeInstance;
       Activity activity = (Activity) scopeInstance.getScope();
@@ -167,28 +184,28 @@ public class ExecutionControllerImpl implements ExecutionController {
 
   @Override
   public void notifyParentFlowEnded() {
-    execution.addOperation(new FlowEnded((ActivityInstance)execution.scopeInstance));
+    engine.addOperation(new FlowEnded((ActivityInstance)engine.scopeInstance));
   }
 
   public void setState(ExecutionState state) {
-    ScopeInstance scopeInstance = execution.scopeInstance;
+    ScopeInstance scopeInstance = engine.scopeInstance;
     ExecutionState oldState = scopeInstance.getState(); 
     scopeInstance.setState(state);
-    if (scopeInstance instanceof ActivityInstance) {
-      listener.activityInstanceStateUpdate((ActivityInstance)scopeInstance, oldState);
+    if (scopeInstance.isActivityInstance()) {
+      engineListener.activityInstanceStateUpdate((ActivityInstance)scopeInstance, oldState);
     } else {
-      listener.workflowInstanceStateUpdate((WorkflowInstance)scopeInstance, oldState);
+      engineListener.workflowInstanceStateUpdate((WorkflowInstance)scopeInstance, oldState);
     }
   }
   
   public void endScopeInstance() {
-    ScopeInstance scopeInstance = execution.scopeInstance;
+    ScopeInstance scopeInstance = engine.scopeInstance;
     if (!scopeInstance.isEnded()) {
       scopeInstance.setState(new Ended());
-      if (scopeInstance instanceof ActivityInstance) {
-        listener.activityInstanceEnded((ActivityInstance)scopeInstance);
+      if (scopeInstance.isActivityInstance()) {
+        engineListener.activityInstanceEnded((ActivityInstance)scopeInstance);
       } else {
-        listener.workflowInstanceEnded((WorkflowInstance)scopeInstance);
+        engineListener.workflowInstanceEnded((WorkflowInstance)scopeInstance);
       }
     }
   }

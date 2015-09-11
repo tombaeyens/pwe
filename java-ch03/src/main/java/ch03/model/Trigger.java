@@ -3,7 +3,7 @@ package ch03.model;
 import java.util.Map;
 
 import ch03.data.TypedValue;
-import ch03.engine.Execution;
+import ch03.engine.Engine;
 
 
 
@@ -12,6 +12,6 @@ import ch03.engine.Execution;
  */
 public interface Trigger {
 
-  void start(Execution execution, Map<String, TypedValue> startData);
+  void start(Engine engine, Map<String, TypedValue> startData);
   
 }
