@@ -36,12 +36,15 @@ public abstract class Scope {
     return activity;
   }
 
-  public void activityInstanceEnded(
+  public void flowEnded(
+          ScopeInstance scopeInstance, 
           ActivityInstance endedActivityInstance, 
-          ScopeInstance parentInstance, 
-          ContextImpl executionContext,
-          ControllerImpl executionController) {
-    
+          ContextImpl context,
+          ControllerImpl controller) {
+    if (scopeInstance.getOpenActivityInstances().isEmpty()) {
+      controller.endScopeInstance();
+      controller.notifyParentFlowEnded();
+    }
   }
   
   public abstract boolean isActivity();

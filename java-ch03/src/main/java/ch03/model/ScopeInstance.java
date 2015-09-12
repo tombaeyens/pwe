@@ -63,6 +63,16 @@ public abstract class ScopeInstance {
     }
     return null;
   }
+  
+  public List<ActivityInstance> getOpenActivityInstances() {
+    List<ActivityInstance> activityInstances = new ArrayList<>();
+    for (ActivityInstance activityInstance: activityInstances) {
+      if (!activityInstance.isEnded()) {
+        activityInstances.add(activityInstance);
+      }
+    }
+    return activityInstances;
+  }
 
   /** searches for the variable instance and recurses over the parents. */
   public VariableInstance findVariableInstanceByVariableIdRecursive(String variableId) {

@@ -13,12 +13,12 @@ import ch03.model.Transition;
 public interface Controller {
 
   /** starts the given scope */
-  ActivityInstance startActivity(Activity activity);
+  ActivityInstance startActivityInstance(Activity activity);
 
   /** starts the given scope */
-  ActivityInstance startActivity(Activity activity, ScopeInstance parentScopeInstance);
+  ActivityInstance startActivityInstance(Activity activity, ScopeInstance parentScopeInstance);
 
-  List<ActivityInstance> startActivities(List<Activity> activities);
+  List<ActivityInstance> startActivityInstances(List<Activity> activities);
 
   void waitForExternalMessage();
   

@@ -13,6 +13,7 @@ import ch03.engine.state.Starting;
 import ch03.engine.state.WaitingForMessage;
 import ch03.model.Activity;
 import ch03.model.ActivityInstance;
+import ch03.model.Scope;
 import ch03.model.ScopeInstance;
 import ch03.model.Transition;
 import ch03.model.Workflow;
@@ -40,19 +41,19 @@ public class ControllerImpl implements Controller {
     return workflowInstance;
   }
 
-  public void startActivities(WorkflowInstance workflowInstance, List<Activity> startActivities) {
+  public void startActivityInstances(WorkflowInstance workflowInstance, List<Activity> startActivities) {
     engine.perform(new StartWorkflow(workflowInstance, startActivities));
   }
 
   /** starts the given scope */
   @Override
-  public ActivityInstance startActivity(Activity activity) {
-    return startActivity(activity, engine.scopeInstance);
+  public ActivityInstance startActivityInstance(Activity activity) {
+    return startActivityInstance(activity, engine.scopeInstance);
   }
 
   /** starts the given scope */
   @Override
-  public ActivityInstance startActivity(Activity activity, ScopeInstance parentScopeInstance) {
+  public ActivityInstance startActivityInstance(Activity activity, ScopeInstance parentScopeInstance) {
     if (activity==null || !context.isConditionMet(activity.condition)) {
       return null;
     }
@@ -71,12 +72,12 @@ public class ControllerImpl implements Controller {
   }
 
   @Override
-  public List<ActivityInstance> startActivities(List<Activity> activities) {
+  public List<ActivityInstance> startActivityInstances(List<Activity> activities) {
     List<ActivityInstance> activityInstances = new ArrayList<>();
     if (!activities.isEmpty()) {
       // for each nested activity 
       for (Activity activity: activities) {
-        startActivity(activity);
+        startActivityInstance(activity);
       }
     }
     return activityInstances;
@@ -132,7 +133,7 @@ public class ControllerImpl implements Controller {
   public ActivityInstance takeTransitionWithoutEndingScopeInstance(Transition transition) {
     Activity to = transition!=null ? transition.to : null;
     if (to!=null) {
-      return startActivity(to);
+      return startActivityInstance(to, engine.getScopeInstance().getParent());
     }
     return null;
   }
@@ -178,11 +179,19 @@ public class ControllerImpl implements Controller {
 
   @Override
   public void notifyParentFlowEnded() {
-    engine.addOperation(new FlowEnded((ActivityInstance)engine.scopeInstance));
+    ScopeInstance scopeInstance = engine.getScopeInstance();
+    if (scopeInstance.isActivityInstance()) {
+      ScopeInstance parentInstance = scopeInstance.getParent();
+      Scope parentScope = parentInstance.getScope();
+      engine.setScopeInstance(parentInstance);
+      parentScope.flowEnded(parentInstance, (ActivityInstance)scopeInstance, engine.getContext(), engine.getController());
+    } else {
+      // TODO check if there's another activity instance waiting for this one to finish.
+    }
   }
 
   public void setState(ExecutionState state) {
-    ScopeInstance scopeInstance = engine.scopeInstance;
+    ScopeInstance scopeInstance = engine.getScopeInstance();
     ExecutionState oldState = scopeInstance.getState(); 
     scopeInstance.setState(state);
     if (scopeInstance.isActivityInstance()) {

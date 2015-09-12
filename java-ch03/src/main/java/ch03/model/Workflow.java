@@ -11,6 +11,7 @@ import ch03.engine.Controller;
 import ch03.engine.ControllerImpl;
 import ch03.engine.Engine;
 import ch03.engine.EngineFactory;
+import ch03.engine.EngineFactoryImpl;
 import ch03.engine.context.MapContext;
 
 
@@ -22,14 +23,6 @@ public class Workflow extends Scope {
   protected EngineFactory engineFactory;
   protected List<Activity> startActivities = null;
   
-  public Workflow() {
-    initializeEngineFactory();
-  }
-
-  protected void initializeEngineFactory() {
-    engineFactory = new EngineFactory();
-  }
-
   public WorkflowInstance start() {
     return start(null, null);
   }
@@ -39,11 +32,11 @@ public class Workflow extends Scope {
   }
 
   public WorkflowInstance start(Map<String, TypedValue> startData, List<Activity> startActivities) {
-    Engine engine = engineFactory.newEngine();
+    Engine engine = getEngineFactory().createEngine();
     ControllerImpl controller = engine.getController();
     WorkflowInstance workflowInstance = controller.createWorkfowInstance(this);
     applyStartData(engine, workflowInstance, startData);
-    controller.startActivities(workflowInstance, startActivities);
+    controller.startActivityInstances(workflowInstance, startActivities);
     return workflowInstance;
   }
   
@@ -102,6 +95,9 @@ public class Workflow extends Scope {
   }
 
   public void setEngineFactory(EngineFactory engineFactory) {
+    if (engineFactory==null) {
+      engineFactory = new EngineFactoryImpl();
+    }
     this.engineFactory = engineFactory;
   }
 }

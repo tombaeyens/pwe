@@ -10,7 +10,7 @@ import ch03.data.LessThanExpression;
 import ch03.data.NameExpression;
 import ch03.data.PlusExpression;
 import ch03.data.TypedValueExpression;
-import ch03.data.expression.parser.ExpressionParser;
+import ch03.parser.expression.ExpressionParser;
 
 
 /**
@@ -51,7 +51,6 @@ public class ExpressionTest {
     NameExpression v = (NameExpression) rightPlus.getRight();
     assertEquals("x", v.getName());
   }
-
   
 //    Console console = new Console();
 //    

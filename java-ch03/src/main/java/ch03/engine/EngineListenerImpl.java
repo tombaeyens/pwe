@@ -109,7 +109,7 @@ public class EngineListenerImpl implements EngineListener {
 
   @Override
   public void operationSynchronousAdded(Operation operation) {
-    addUpdate("Add sync operation "+operation);
+    addUpdate("Add operation "+operation);
   }
 
   @Override

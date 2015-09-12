@@ -30,6 +30,6 @@ public class StartWorkflow extends Operation {
     if (startActivities==null) {
       startActivities = workflow.getStartActivities();
     }
-    controller.startActivities(startActivities);
+    controller.startActivityInstances(startActivities);
   }
 }

@@ -1,5 +1,5 @@
 // Generated from InputExpression.g4 by ANTLR 4.5.1
-package ch03.data.expression.parser.input;
+package ch03.parser.expression.input;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;

@@ -1,4 +1,4 @@
-package ch03.data.expression.parser;
+package ch03.parser.expression;
 
 import java.util.LinkedList;
 
@@ -12,23 +12,23 @@ import ch03.data.LessThanExpression;
 import ch03.data.NameExpression;
 import ch03.data.PlusExpression;
 import ch03.data.TypedValueExpression;
-import ch03.data.expression.parser.input.InputExpressionListener;
-import ch03.data.expression.parser.input.InputExpressionParser.AndContext;
-import ch03.data.expression.parser.input.InputExpressionParser.BooleanExpressionContext;
-import ch03.data.expression.parser.input.InputExpressionParser.BracketBooleanExpressionContext;
-import ch03.data.expression.parser.input.InputExpressionParser.DereferenceContext;
-import ch03.data.expression.parser.input.InputExpressionParser.ExpressionContext;
-import ch03.data.expression.parser.input.InputExpressionParser.ListContext;
-import ch03.data.expression.parser.input.InputExpressionParser.LtContext;
-import ch03.data.expression.parser.input.InputExpressionParser.NameContext;
-import ch03.data.expression.parser.input.InputExpressionParser.NotContext;
-import ch03.data.expression.parser.input.InputExpressionParser.NumberContext;
-import ch03.data.expression.parser.input.InputExpressionParser.OrContext;
-import ch03.data.expression.parser.input.InputExpressionParser.PlusContext;
-import ch03.data.expression.parser.input.InputExpressionParser.StringContext;
-import ch03.data.expression.parser.input.InputExpressionParser.TermContext;
 import ch03.data.types.NumberType;
 import ch03.data.types.StringType;
+import ch03.parser.expression.input.InputExpressionListener;
+import ch03.parser.expression.input.InputExpressionParser.AndContext;
+import ch03.parser.expression.input.InputExpressionParser.BooleanExpressionContext;
+import ch03.parser.expression.input.InputExpressionParser.BracketBooleanExpressionContext;
+import ch03.parser.expression.input.InputExpressionParser.DereferenceContext;
+import ch03.parser.expression.input.InputExpressionParser.ExpressionContext;
+import ch03.parser.expression.input.InputExpressionParser.ListContext;
+import ch03.parser.expression.input.InputExpressionParser.LtContext;
+import ch03.parser.expression.input.InputExpressionParser.NameContext;
+import ch03.parser.expression.input.InputExpressionParser.NotContext;
+import ch03.parser.expression.input.InputExpressionParser.NumberContext;
+import ch03.parser.expression.input.InputExpressionParser.OrContext;
+import ch03.parser.expression.input.InputExpressionParser.PlusContext;
+import ch03.parser.expression.input.InputExpressionParser.StringContext;
+import ch03.parser.expression.input.InputExpressionParser.TermContext;
 
 
 /**

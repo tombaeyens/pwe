@@ -20,8 +20,16 @@ public class StartActivity extends Operation {
   @Override
   public void perform(Engine engine, ContextImpl context, ControllerImpl controller) {
     controller.setState(Starting.INSTANCE);
-    ActivityInstance activityInstance = (ActivityInstance) scopeInstance;
-    Activity activity = (Activity) scopeInstance.getScope();
+    Activity activity = activityInstance.getActivity();
     activity.start(activityInstance, engine.getContext(), engine.getController());
+  }
+
+  @Override
+  public boolean isAsynchronous() {
+    return activityInstance.getActivity().isAsynchronous();
+  }
+  
+  public boolean requiresTransactionSave() {
+    return true;
   }
 }

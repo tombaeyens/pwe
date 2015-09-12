@@ -2,8 +2,10 @@ package ch03.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import ch03.data.Condition;
+import ch03.data.TypedValue;
 import ch03.engine.Context;
 import ch03.engine.Controller;
 
@@ -32,6 +34,9 @@ public class Activity extends Scope {
   public void start(ActivityInstance activityInstance, Context context, Controller controller) {
   }
 
+  public void handleMessage(ActivityInstance activityInstance, Context context, Controller controller, Map<String,TypedValue> messageData) {
+  }
+
   public void onwards(ActivityInstance activityInstance, Context context, Controller controller) {
     List<Transition> outgoingTransitions = activityInstance.activity.outTransitions;
     controller.takeTransitions(outgoingTransitions);
@@ -44,6 +49,10 @@ public class Activity extends Scope {
 
   @Override
   public boolean isWorkflow() {
+    return false;
+  }
+
+  public boolean isAsynchronous() {
     return false;
   }
 }

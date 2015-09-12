@@ -1,16 +1,18 @@
-package ch03.workflow;
+package ch03.concurrency.infrastructure;
 
+import java.util.Map;
+
+import ch03.data.TypedValue;
 import ch03.engine.Context;
 import ch03.engine.Controller;
 import ch03.model.Activity;
 import ch03.model.ActivityInstance;
 
 
-/** external activity (wait state) */
-/**
+/** external activity (wait state) 
  * @author Tom Baeyens
  */
-public class Async extends Activity {
+public class ExternalSync extends Activity {
 
   @Override
   public void start(ActivityInstance activityInstance, Context context, Controller controller) {
@@ -27,4 +29,10 @@ public class Async extends Activity {
     // external continuation based on the business data
   }
 
+  @Override
+  public void handleMessage(ActivityInstance activityInstance, Context context, Controller controller, Map<String, TypedValue> messageData) {
+    // external message received
+    
+    controller.onwards();
+  }
 }

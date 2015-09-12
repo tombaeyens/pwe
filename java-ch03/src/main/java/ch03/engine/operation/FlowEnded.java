@@ -21,6 +21,7 @@ public class FlowEnded extends Operation {
   public void perform(Engine engine, ContextImpl context, ControllerImpl controller) {
     ScopeInstance parentInstance = scopeInstance.getParent();
     Scope parentScope = parentInstance.getScope();
-    parentScope.activityInstanceEnded((ActivityInstance)scopeInstance, parentInstance, engine.getContext(), engine.getController());
+    engine.setScopeInstance(parentInstance);
+    parentScope.flowEnded(parentInstance, (ActivityInstance)scopeInstance, engine.getContext(), engine.getController());
   }
 }

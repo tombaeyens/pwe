@@ -61,11 +61,14 @@ public class Engine {
   }
 
   protected void addOperation(Operation operation) {
-    if (isAsync || operation.isSynchonrous()) {
+    if (isAsync || !operation.isAsynchronous()) {
       operations.add(operation);
       engineListener.operationSynchronousAdded(operation);
     } else {
       engineListener.operationAsynchronousAdded(operation);
+      if (asyncOperations==null) {
+        asyncOperations = new LinkedList<>();
+      }
       asyncOperations.add(operation);
     }
   }
@@ -75,8 +78,12 @@ public class Engine {
       // This execution still has more work to do.
       // At this place the persistence is in a consistent state 
       // to be resumed later if things would crash further down.
-      engineListener.transactionSave(scopeInstance.getWorkflowInstance(), operations, asyncOperations);
-      Operation current = operations.removeFirst();
+      
+      Operation current = operations.getFirst();
+      if (current.requiresTransactionSave()) {
+        engineListener.transactionSave(scopeInstance.getWorkflowInstance(), operations, asyncOperations);
+      }
+      operations.removeFirst();
       engineListener.operationSynchronousRemoved(current);
       this.scopeInstance = current.getScopeInstance();
       current.perform(this, context, controller);
@@ -87,11 +94,12 @@ public class Engine {
     if (asyncOperations!=null && !asyncOperations.isEmpty()) {
       operations = asyncOperations;
       asyncOperations = null;
-      
       asynchronizer.continueAsynchrous(this);
     }
     // No more work to be done
     engineListener.transactionEnd(scopeInstance.getWorkflowInstance());
+    operations = null;
+    asyncOperations = null;
   }
   
   /** It's the responsibility of the asynchronizer to call this 

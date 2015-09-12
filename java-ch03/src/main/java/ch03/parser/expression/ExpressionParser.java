@@ -1,11 +1,11 @@
-package ch03.data.expression.parser;
+package ch03.parser.expression;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 
 import ch03.data.InputExpression;
-import ch03.data.expression.parser.input.InputExpressionLexer;
-import ch03.data.expression.parser.input.InputExpressionParser;
+import ch03.parser.expression.input.InputExpressionLexer;
+import ch03.parser.expression.input.InputExpressionParser;
 
 
 /**
