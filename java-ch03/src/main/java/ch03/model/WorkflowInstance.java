@@ -15,6 +15,13 @@ public class WorkflowInstance extends ScopeInstance {
     return this;
   }
 
+  public String toString() {
+    String workflowId = workflow.getId();
+    return workflowId!=null 
+            ? "("+workflowId+"|"+id+")"
+            : "("+id+")"; 
+  }
+
   @Override
   public boolean isActivityInstance() {
     return false;

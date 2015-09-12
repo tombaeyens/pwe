@@ -14,6 +14,10 @@ public class Variable {
   protected Object initialValue;
   protected InputExpression initialValueExpression;
   
+  public String toString() {
+    return "$"+id;
+  }
+  
   public String getId() {
     return id;
   }

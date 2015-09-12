@@ -15,12 +15,15 @@ package ch03.concurrency.infrastructure;
 
 import ch03.engine.AsynchronizerImpl;
 import ch03.engine.Engine;
+import ch03.util.Logger;
 
 
 /**
  * @author Tom Baeyens
  */
 public class TestAsynchronizer extends AsynchronizerImpl {
+  
+  private static final Logger log = Engine.log;
   
   protected String threadId = "clientThread";
   protected int nextThreadId = 1;
@@ -30,11 +33,11 @@ public class TestAsynchronizer extends AsynchronizerImpl {
     engine.getContext().getExternal(Log.class);
     String pausedThreadId = threadId;
     threadId = "AsyncThread"+Integer.toString(nextThreadId++);
-    System.out.println("Pausing "+pausedThreadId+", continuing with "+threadId);
+    log.debug("~~~ Switching to thread  "+threadId);
     try {
       engine.continueAsynchrous();
     } finally {
-      System.out.println("Thread "+threadId+" ended, continuing with "+pausedThreadId);
+      log.debug("~~~ Switching back to thread "+pausedThreadId);
       threadId = pausedThreadId;
     }
   }

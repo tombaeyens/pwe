@@ -23,7 +23,7 @@ public class EngineFactoryImpl implements EngineFactory {
 
   @Override
   public Engine createEngine() {
-    Engine engine = new Engine();
+    Engine engine = instantiateEngine();
     ControllerImpl controller = instantiateController();
     ContextImpl context = instantiateContext();
     EngineListenerImpl engineListener = instantiateEngineListener();
@@ -42,6 +42,10 @@ public class EngineFactoryImpl implements EngineFactory {
     context.setExternalContext(initializeExternalContext());
     
     return engine;
+  }
+
+  protected Engine instantiateEngine() {
+    return new Engine();
   }
 
   protected SubContext initializeExternalContext() {

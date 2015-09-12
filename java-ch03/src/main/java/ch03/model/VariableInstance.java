@@ -14,6 +14,14 @@ public class VariableInstance {
   protected Variable variable;
   protected TypedValue typedValue;
   
+  public String toString() {
+    return variable!=null 
+        ? "${"+variable.getId()+"|"+variable.getType()+"|"+id+"}"
+        : typedValue!=null 
+             ? "${"+typedValue.getType()+"|"+id+"}"
+             : "${"+id+"}";
+  }
+  
   public Type getType() {
     if (variable!=null && variable.getType()!=null) {
       return variable.getType();

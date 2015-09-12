@@ -10,6 +10,8 @@ import ch03.model.ActivityInstance;
 import ch03.model.ScopeInstance;
 import ch03.model.VariableInstance;
 import ch03.model.WorkflowInstance;
+import ch03.util.Logger;
+import ch03.util.LoggerFactory;
 
 
 /** 
@@ -17,6 +19,8 @@ import ch03.model.WorkflowInstance;
  * @author Tom Baeyens
  */
 public class Engine {
+  
+  public static final Logger log = LoggerFactory.getLogger(Engine.class);
   
   ScopeInstance scopeInstance;
   boolean isAsync = false;
@@ -54,7 +58,6 @@ public class Engine {
       addOperation(operation);
       executeOperations();
       executeAsynchronousOperations();
-
     } else {
       addOperation(operation);
     }
@@ -81,13 +84,17 @@ public class Engine {
       
       Operation current = operations.getFirst();
       if (current.requiresTransactionSave()) {
-        engineListener.transactionSave(scopeInstance.getWorkflowInstance(), operations, asyncOperations);
+        transactionSave();
       }
       operations.removeFirst();
       engineListener.operationSynchronousRemoved(current);
       this.scopeInstance = current.getScopeInstance();
       current.perform(this, context, controller);
     }
+  }
+
+  protected void transactionSave() {
+    engineListener.transactionSave(scopeInstance.getWorkflowInstance(), operations, asyncOperations);
   }
 
   protected void executeAsynchronousOperations() {

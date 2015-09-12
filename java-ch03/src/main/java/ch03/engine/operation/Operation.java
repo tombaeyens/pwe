@@ -34,12 +34,7 @@ public abstract class Operation {
   }
   
   public String toString() {
-    return getClass().getSimpleName()+
-      "("+
-      (activityInstance!=null 
-              ? activityInstance.getWorkflowInstance().getId()+"-"+activityInstance.getId()
-              : scopeInstance.getId())+
-      ")";
+    return getClass().getSimpleName()+"<"+scopeInstance+">";
   }
   
   public boolean requiresTransactionSave() {

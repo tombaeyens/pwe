@@ -32,29 +32,12 @@ public class Workflow extends Scope {
   }
 
   public WorkflowInstance start(Map<String, TypedValue> startData, List<Activity> startActivities) {
-    Engine engine = getEngineFactory().createEngine();
-    ControllerImpl controller = engine.getController();
-    WorkflowInstance workflowInstance = controller.createWorkfowInstance(this);
-    applyStartData(engine, workflowInstance, startData);
-    controller.startActivityInstances(workflowInstance, startActivities);
-    return workflowInstance;
+    return getEngineFactory()
+            .createEngine()
+            .getController()
+            .startWorkfowInstance(this, startData, startActivities);
   }
   
-  protected void applyStartData(Engine engine, WorkflowInstance workflowInstance, Map<String, TypedValue> startData) {
-    if (startData!=null && !startData.isEmpty() && inputParameters!=null) {
-      ContextImpl context = engine.getContext();
-      MapContext startDataContext = new MapContext("startData", startData);
-      // adding the start data subcontext after the subcontext context
-      context.addSubContext(0, startDataContext);
-      Map<String, TypedValue> inputs = context.readInputs();
-      context.removeSubContext(startDataContext);
-      for (String inputKey: inputs.keySet()) {
-        TypedValue inputValue = inputs.get(inputKey);
-        context.setVariableInstanceValue(inputKey, inputValue);
-      }
-    }
-  }
-
   public List<Activity> getStartActivities() {
     if (this.startActivities==null) {
       // I recall reading that this kind of initialization synchronization is not 100% threadsafe.
@@ -63,7 +46,7 @@ public class Workflow extends Scope {
       synchronized (this) {
         List<Activity> startActivities = new ArrayList<>();
         for (Activity activity : activities.values()) {
-          if (activity.inTransitions.isEmpty()) {
+          if (activity.incomingTransitions.isEmpty()) {
             startActivities.add(activity);
           }
         }
@@ -74,6 +57,10 @@ public class Workflow extends Scope {
   }
 
   public void onwards(WorkflowInstance workflowInstance, Context context, Controller controller) {
+  }
+
+  public String toString() {
+    return "["+(id!=null?id+"]":"workflow]"); 
   }
 
   @Override

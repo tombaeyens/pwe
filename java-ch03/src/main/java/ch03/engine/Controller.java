@@ -12,13 +12,14 @@ import ch03.model.Transition;
  */
 public interface Controller {
 
-  /** starts the given scope */
+  /** starts a nested activity instance for the given activity in the current scope. */
   ActivityInstance startActivityInstance(Activity activity);
 
-  /** starts the given scope */
-  ActivityInstance startActivityInstance(Activity activity, ScopeInstance parentScopeInstance);
-
+  /** starts nested activity instances for the given activities in the current scope. */
   List<ActivityInstance> startActivityInstances(List<Activity> activities);
+
+  /** starts an activity instance for the given activity nested in the given parentScopeInstance */
+  ActivityInstance startActivityInstance(Activity activity, ScopeInstance parentScopeInstance);
 
   void waitForExternalMessage();
   

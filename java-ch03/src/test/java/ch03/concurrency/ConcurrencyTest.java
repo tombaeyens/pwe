@@ -40,6 +40,4 @@ public class ConcurrencyTest {
 //  public static Log log(String threadId, String message) {
 //    return new Log(threadId, message);
 //  }
-  
-
 }

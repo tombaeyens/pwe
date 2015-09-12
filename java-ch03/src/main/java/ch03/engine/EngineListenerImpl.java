@@ -45,7 +45,7 @@ public class EngineListenerImpl implements EngineListener {
   public void transactionStartWorkflowInstance(WorkflowInstance workflowInstance) {
     String workflowInstanceId = nextWorkflowInstanceId(workflowInstance);
     workflowInstance.setId(workflowInstanceId);
-    System.out.println("Transaction starts for new workflow instance "+workflowInstanceId);
+    System.out.println(" | Transaction starts for new workflow instance "+workflowInstance);
     this.workflowInstance = workflowInstance;
     this.updates = new ArrayList<>();
     addUpdate("Create workflow instance "+workflowInstanceId);
@@ -53,7 +53,7 @@ public class EngineListenerImpl implements EngineListener {
 
   @Override
   public void transactionStartHandleMessage(ActivityInstance activityInstance, Map<String, TypedValue> messageData) {
-    System.out.println("Transaction starts to handle message for activity instance "+activityInstance.getWorkflowInstance().getId()+"-"+activityInstance.getId());
+    System.out.println(" | Transaction starts to handle message for activity instance "+activityInstance);
     this.workflowInstance = activityInstance.getWorkflowInstance();
     this.updates = new ArrayList<>();
   }
@@ -63,48 +63,42 @@ public class EngineListenerImpl implements EngineListener {
     ScopeInstance scopeInstance = variableInstance.getScopeInstance();
     String variableInstanceId = nextVariableInstanceId(variableInstance);
     variableInstance.setId(variableInstanceId);
-    Type type = variableInstance.getVariable()!=null ? variableInstance.getVariable().getType() : null;
     TypedValue initialValue = variableInstance.getTypedValue();
-    addUpdate("Create workflow instance "+
-        (scopeInstance.isActivityInstance() ? scopeInstance.getWorkflowInstance().getId()+"-"+scopeInstance.getId() : scopeInstance.getWorkflowInstance().getId())+
-        variableInstanceId+
-        (type!=null ? " as "+type : "")+
-        (initialValue!=null ? " with "+initialValue : ""));
+    addUpdate("Create variable instance "+variableInstance+
+              " in "+scopeInstance+
+              (initialValue!=null ? " with "+initialValue : ""));
   }
 
   @Override
   public void activityInstanceCreated(ActivityInstance activityInstance) {
     String activityInstanceId = nextActivityInstanceId(activityInstance);
     activityInstance.setId(activityInstanceId);
-    addUpdate("Create activity instance "+activityInstance.getWorkflowInstance().getId()+"-"+activityInstanceId);
+    addUpdate("Create activity instance "+activityInstance);
   }
 
   @Override
   public void variableInstanceValueUpdated(VariableInstance variableInstance, TypedValue oldValue) {
-    ScopeInstance scopeInstance = variableInstance.getScopeInstance();
-    addUpdate("Update variable instance "+
-        (scopeInstance.isActivityInstance() ? scopeInstance.getWorkflowInstance().getId()+"-"+scopeInstance.getId() : scopeInstance.getWorkflowInstance().getId())+
-        variableInstance.getId()+" to "+variableInstance.getTypedValue());
+    addUpdate("Update variable instance "+variableInstance+" = "+variableInstance.getTypedValue());
   }
 
   @Override
   public void activityInstanceEnded(ActivityInstance activityInstance) {
-    addUpdate("Mark activity instance "+activityInstance.getWorkflowInstance().getId()+"-"+activityInstance.getId()+" as ended");
+    addUpdate("Mark activity instance "+activityInstance+" as ended");
   }
 
   @Override
   public void workflowInstanceEnded(WorkflowInstance workflowInstance) {
-    addUpdate("Mark workflow instance "+workflowInstance.getId()+" as ended");
+    addUpdate("Mark workflow instance "+workflowInstance+" as ended");
   }
 
   @Override
   public void activityInstanceStateUpdate(ActivityInstance activityInstance, ExecutionState oldState) {
-    addUpdate("Update activity instance "+activityInstance.getWorkflowInstance().getId()+"-"+activityInstance.getId()+": set state to "+activityInstance.getState());
+    addUpdate("Update state of activity instance "+activityInstance+" to "+activityInstance.getState());
   }
 
   @Override
   public void workflowInstanceStateUpdate(WorkflowInstance workflowInstance, ExecutionState oldState) {
-    addUpdate("Update workflow instance "+workflowInstance.getId()+": set state to "+workflowInstance.getState());
+    addUpdate("Update state of workflow instance "+workflowInstance+" to "+workflowInstance.getState());
   }
 
   @Override
@@ -124,9 +118,9 @@ public class EngineListenerImpl implements EngineListener {
 
   @Override
   public void transactionSave(WorkflowInstance workflowInstance, List<Operation> operations, List<Operation> asyncOperations) {
-    System.out.println("Transaction savepoint for "+workflowInstance.getId());
+    System.out.println(" | Transaction savepoint for "+workflowInstance.getId());
     for (String update: updates) {
-      System.out.println(" > "+update);
+      System.out.println(" | "+update);
     }
     this.updates = new ArrayList<>();
   }

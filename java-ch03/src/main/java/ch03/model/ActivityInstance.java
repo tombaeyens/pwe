@@ -43,4 +43,8 @@ public class ActivityInstance extends ScopeInstance {
   public void setActivity(Activity activity) {
     this.activity = activity;
   }
+
+  public String toString() {
+    return "("+activity.getId()+"|"+activity.getTypeName()+"|"+id+")"; 
+  }
 }

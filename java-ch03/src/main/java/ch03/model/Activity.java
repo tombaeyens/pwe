@@ -16,15 +16,15 @@ public class Activity extends Scope {
 
   public Condition condition;
   public Scope parent;
-  public List<Transition> inTransitions = new ArrayList<>();
-  public List<Transition> outTransitions = new ArrayList<>();
+  public List<Transition> incomingTransitions = new ArrayList<>();
+  public List<Transition> outgoingTransitions = new ArrayList<>();
   
   public Transition createTransitionTo(Activity destination) {
     Transition transition = new Transition();
     transition.from = this;
-    transition.from.outTransitions.add(transition);
+    transition.from.outgoingTransitions.add(transition);
     transition.to = destination;
-    transition.to.inTransitions.add(transition);
+    transition.to.incomingTransitions.add(transition);
     return transition;
   }
   
@@ -38,8 +38,16 @@ public class Activity extends Scope {
   }
 
   public void onwards(ActivityInstance activityInstance, Context context, Controller controller) {
-    List<Transition> outgoingTransitions = activityInstance.activity.outTransitions;
+    List<Transition> outgoingTransitions = activityInstance.activity.outgoingTransitions;
     controller.takeTransitions(outgoingTransitions);
+  }
+  
+  public String getTypeName() {
+    return getClass().getSimpleName();
+  }
+
+  public String toString() {
+    return "["+id+"|"+getTypeName()+"]"; 
   }
 
   @Override
@@ -54,5 +62,45 @@ public class Activity extends Scope {
 
   public boolean isAsynchronous() {
     return false;
+  }
+
+  
+  public Condition getCondition() {
+    return condition;
+  }
+
+  
+  public void setCondition(Condition condition) {
+    this.condition = condition;
+  }
+
+  
+  public Scope getParent() {
+    return parent;
+  }
+
+  
+  public void setParent(Scope parent) {
+    this.parent = parent;
+  }
+
+  
+  public List<Transition> getIncomingTransitions() {
+    return incomingTransitions;
+  }
+
+  
+  public void setIncomingTransitions(List<Transition> incomingTransitions) {
+    this.incomingTransitions = incomingTransitions;
+  }
+
+  
+  public List<Transition> getOutgoingTransitions() {
+    return outgoingTransitions;
+  }
+
+  
+  public void setOutgoingTransitions(List<Transition> outgoingTransitions) {
+    this.outgoingTransitions = outgoingTransitions;
   }
 }

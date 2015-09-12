@@ -18,13 +18,16 @@ import ch03.model.Transition;
 import ch03.model.Variable;
 import ch03.model.VariableInstance;
 import ch03.model.WorkflowInstance;
+import ch03.util.Logger;
 
 
 /**
  * @author Tom Baeyens
  */
 public class ContextImpl implements Context {
-  
+
+  private static final Logger log = Engine.log;
+
   Engine engine;
   VariablesContext variablesContext;
   ConfigurationsContext configurationsContext;
@@ -99,11 +102,11 @@ public class ContextImpl implements Context {
   @Override
   public List<Transition> getOutgoingTransitionsMeetingCondition() {
     Activity activity = (Activity) engine.getScopeInstance().getScope();
-    if (activity.outTransitions.isEmpty()) {
-      return activity.outTransitions;
+    if (activity.outgoingTransitions.isEmpty()) {
+      return activity.outgoingTransitions;
     }
     List<Transition> outgoingTransitionsMeetingCondition = new ArrayList<>();
-    for (Transition transition: activity.outTransitions) {
+    for (Transition transition: activity.outgoingTransitions) {
       if (isConditionMet(transition.condition)) {
         outgoingTransitionsMeetingCondition.add(transition);
       }
@@ -164,6 +167,11 @@ public class ContextImpl implements Context {
     variableInstance.setTypedValue(initialValue);
     scopeInstance.getVariableInstances().put(variableId, variableInstance);
     engine.getEngineListener().variableInstanceCreated(variableInstance);
+    if (variable!=null) {
+      log.debug("Created variable instance  [%s|%s] : %s", variableInstance.getId(), variable.getId(), variable.getType());
+    } else if (initialValue!=null) {
+      log.debug("Created dynamic variable instance [%s] %s ", variableInstance.getId(), initialValue.getType());
+    }
     return variableInstance;
   }
 
@@ -186,6 +194,12 @@ public class ContextImpl implements Context {
   protected void setVariableInstanceValue(VariableInstance variableInstance, TypedValue newValue) {
     TypedValue oldValue = variableInstance.getTypedValue();
     variableInstance.setTypedValue(newValue);
+    Variable variable = variableInstance.getVariable();
+    if (variable!=null) {
+      log.debug("Set variable value [%s|%s] = %s", variable.getId(), variableInstance.getId(), newValue);
+    } else {
+      log.debug("Set variable value [%s] = %s", variableInstance.getId(), newValue);
+    }
     engine.getEngineListener().variableInstanceValueUpdated(variableInstance, oldValue);
   }
   

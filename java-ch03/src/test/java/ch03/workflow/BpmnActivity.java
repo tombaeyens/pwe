@@ -22,7 +22,7 @@ public class BpmnActivity extends Activity {
                       Controller controller) {
     List<Transition> transitionsToTake = new ArrayList<>();
     Activity activity = activityInstance.getActivity();
-    for (Transition outTransition: activity.outTransitions) {
+    for (Transition outTransition: activity.outgoingTransitions) {
       if (context.isConditionMet(outTransition.condition)) {
         transitionsToTake.add(outTransition);
       }

@@ -2,10 +2,11 @@ package ch03.engine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import ch03.engine.operation.FlowEnded;
+import ch03.data.TypedValue;
+import ch03.engine.context.MapContext;
 import ch03.engine.operation.StartActivity;
-import ch03.engine.operation.StartWorkflow;
 import ch03.engine.state.Created;
 import ch03.engine.state.Ended;
 import ch03.engine.state.ExecutionState;
@@ -18,6 +19,8 @@ import ch03.model.ScopeInstance;
 import ch03.model.Transition;
 import ch03.model.Workflow;
 import ch03.model.WorkflowInstance;
+import ch03.util.Logger;
+import ch03.util.LoggerFactory;
 
 
 /**
@@ -25,24 +28,43 @@ import ch03.model.WorkflowInstance;
  */
 public class ControllerImpl implements Controller {
   
+  private static final Logger log = Engine.log;
+  
   protected Engine engine;
   protected ContextImpl context;
   protected EngineListener engineListener;
 
-  public WorkflowInstance createWorkfowInstance(Workflow workflow) {
+  public WorkflowInstance startWorkfowInstance(Workflow workflow, Map<String, TypedValue> startData, List<Activity> startActivities) {
     WorkflowInstance workflowInstance = engine.instantiateWorkflowInstance();
     workflowInstance.setEngine(engine);
     workflowInstance.setWorkflow(workflow);
     workflowInstance.setScope(workflow);
     workflowInstance.setState(new Starting());
     engineListener.transactionStartWorkflowInstance(workflowInstance);
+    log.debug("Created workflow instance %s", workflowInstance);
     engine.setScopeInstance(workflowInstance);
     engine.enterScope();
+    applyStartData(workflow, workflowInstance, startData);
+    if (startActivities==null) {
+      startActivities = workflow.getStartActivities();
+    }
+    startActivityInstances(startActivities);
     return workflowInstance;
   }
 
-  public void startActivityInstances(WorkflowInstance workflowInstance, List<Activity> startActivities) {
-    engine.perform(new StartWorkflow(workflowInstance, startActivities));
+  public void applyStartData(Workflow workflow, WorkflowInstance workflowInstance, Map<String, TypedValue> startData) {
+    if (startData!=null && !startData.isEmpty() && workflow.getInputParameters()!=null) {
+      ContextImpl context = engine.getContext();
+      MapContext startDataContext = new MapContext("startData", startData);
+      // adding the start data subcontext after the subcontext context
+      context.addSubContext(0, startDataContext);
+      Map<String, TypedValue> inputs = context.readInputs();
+      context.removeSubContext(startDataContext);
+      for (String inputKey: inputs.keySet()) {
+        TypedValue inputValue = inputs.get(inputKey);
+        context.setVariableInstanceValue(inputKey, inputValue);
+      }
+    }
   }
 
   /** starts the given scope */
@@ -65,9 +87,12 @@ public class ControllerImpl implements Controller {
     parentScopeInstance.getActivityInstances().add(activityInstance);
 
     engineListener.activityInstanceCreated(activityInstance);
+    String format = parentScopeInstance.isActivityInstance() 
+            ? "Create activity instance %s inside activity instance %s"
+            : "Create activity instance %s";
+    log.debug(format, activityInstance, parentScopeInstance);
     
     engine.perform(new StartActivity(activityInstance));
-    
     return activityInstance;
   }
 
@@ -133,6 +158,7 @@ public class ControllerImpl implements Controller {
   public ActivityInstance takeTransitionWithoutEndingScopeInstance(Transition transition) {
     Activity to = transition!=null ? transition.to : null;
     if (to!=null) {
+      log.debug("Taking transition to %s", to);
       return startActivityInstance(to, engine.getScopeInstance().getParent());
     }
     return null;
@@ -206,8 +232,10 @@ public class ControllerImpl implements Controller {
     if (!scopeInstance.isEnded()) {
       scopeInstance.setState(new Ended());
       if (scopeInstance.isActivityInstance()) {
+        log.debug("Ending activity instance %s", scopeInstance);
         engineListener.activityInstanceEnded((ActivityInstance)scopeInstance);
       } else {
+        log.debug("Ending workflow instance %s", scopeInstance);
         engineListener.workflowInstanceEnded((WorkflowInstance)scopeInstance);
       }
     }
@@ -242,4 +270,5 @@ public class ControllerImpl implements Controller {
   public void setEngineListener(EngineListener engineListener) {
     this.engineListener = engineListener;
   }
+
 }
