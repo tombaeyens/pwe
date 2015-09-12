@@ -4,8 +4,6 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import ch03.engine.Engine;
-import ch03.engine.EngineFactory;
 import ch03.model.ActivityInstance;
 import ch03.model.Workflow;
 import ch03.model.WorkflowInstance;
@@ -23,6 +21,7 @@ public class WorkflowTest {
     Workflow workflow = new Workflow();
     Sync sync = workflow.add("sync", new Sync());
     Async async = workflow.add("async", new Async());
+    sync.createTransitionTo(async);
 
     WorkflowInstance workflowInstance = workflow.start();
     

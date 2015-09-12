@@ -29,11 +29,10 @@ public class ContextImpl implements Context {
   VariablesContext variablesContext;
   ConfigurationsContext configurationsContext;
   SubContext externalContext;
-  List<SubContext> subContexts;
+  List<SubContext> subContexts = new ArrayList<>();
   
-  public ContextImpl(Engine engine) {
+  public void setEngine(Engine engine) {
     this.engine = engine;
-    subContexts = new ArrayList<>();
     initializeVariablesContext();
     initializeConfigurationsContext();
   }
@@ -64,14 +63,14 @@ public class ContextImpl implements Context {
   }
   
   @Override
-  public Object findExternally(String key) {
+  public Object getExternal(String key) {
     SubContext externalContext = getExternalContext();
     return externalContext!=null ? externalContext.get(key) : null;
   }
   
   @Override
-  public <T> T findExternally(Class<T> type) {
-    return (T) findExternally(type.getName());
+  public <T> T getExternal(Class<T> type) {
+    return (T) getExternal(type.getName());
   }
 
   @Override
@@ -212,11 +211,6 @@ public class ContextImpl implements Context {
   
   public Engine getEngine() {
     return engine;
-  }
-
-  
-  public void setEngine(Engine engine) {
-    this.engine = engine;
   }
 
   

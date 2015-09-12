@@ -7,7 +7,7 @@ import ch03.data.TypedValue;
 /**
  * @author Tom Baeyens
  */
-public class JavaBeanType implements Type {
+public class JavaBeanType extends AbstractType {
   
   public static JavaBeanType INSTANCE = new JavaBeanType();
 

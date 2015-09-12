@@ -4,8 +4,12 @@ package ch03.engine.state;
 /**
  * @author Tom Baeyens
  */
-public interface ExecutionState {
+public abstract class ExecutionState {
 
-  boolean isEnded();
+  public abstract boolean isEnded();
 
+  @Override
+  public String toString() {
+    return getClass().getSimpleName();
+  }
 }

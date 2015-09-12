@@ -1,8 +1,8 @@
 package ch03.engine.operation;
 
-import ch03.engine.Engine;
 import ch03.engine.ContextImpl;
 import ch03.engine.ControllerImpl;
+import ch03.engine.Engine;
 import ch03.model.ScopeInstance;
 
 
@@ -22,5 +22,14 @@ public abstract class Operation {
   
   public boolean isSynchonrous() {
     return true;
+  }
+  
+  public String toString() {
+    return getClass().getSimpleName()+
+      "("+
+      (scopeInstance.isActivityInstance() 
+              ? scopeInstance.getWorkflowInstance().getId()+"-"+scopeInstance.getId()
+              : scopeInstance.getId())+
+      ")";
   }
 }

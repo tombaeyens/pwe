@@ -1,5 +1,6 @@
 package ch03.model;
 
+import ch03.data.Type;
 import ch03.data.TypedValue;
 
 
@@ -12,6 +13,15 @@ public class VariableInstance {
   protected ScopeInstance scopeInstance;
   protected Variable variable;
   protected TypedValue typedValue;
+  
+  public Type getType() {
+    if (variable!=null && variable.getType()!=null) {
+      return variable.getType();
+    } else if (typedValue!=null && typedValue.getType()!=null) {
+      return typedValue.getType();
+    }
+    return null;
+  }
   
   public String getId() {
     return id;

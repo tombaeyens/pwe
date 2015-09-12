@@ -7,7 +7,7 @@ import ch03.data.TypedValue;
 /**
  * @author Tom Baeyens
  */
-public class BooleanType implements Type {
+public class BooleanType extends AbstractType {
   
   public static BooleanType INSTANCE = new BooleanType();
 

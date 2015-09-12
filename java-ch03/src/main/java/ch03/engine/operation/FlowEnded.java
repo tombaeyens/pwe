@@ -1,8 +1,8 @@
 package ch03.engine.operation;
 
-import ch03.engine.Engine;
 import ch03.engine.ContextImpl;
 import ch03.engine.ControllerImpl;
+import ch03.engine.Engine;
 import ch03.model.ActivityInstance;
 import ch03.model.Scope;
 import ch03.model.ScopeInstance;

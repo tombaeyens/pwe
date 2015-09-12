@@ -5,7 +5,7 @@ package ch03.engine.state;
 /**
  * @author Tom Baeyens
  */
-public class WaitingForMessage implements ExecutionState {
+public class WaitingForMessage extends ExecutionState {
 
   @Override
   public boolean isEnded() {

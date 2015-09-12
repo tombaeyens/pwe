@@ -1,7 +1,6 @@
 package ch03.data;
 
 import ch03.engine.Context;
-import ch03.util.Strings;
 
 
 /**
@@ -31,7 +30,7 @@ public class DereferenceExpression implements InputExpression, OutputExpression 
 
   @Override
   public String toString() {
-    return Strings.toString(expression)+"."+key;
+    return (expression!=null ? expression.toString() : "null")+"."+key;
   }
 
   public InputExpression getExpression() {

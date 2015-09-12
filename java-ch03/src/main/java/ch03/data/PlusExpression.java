@@ -1,7 +1,6 @@
 package ch03.data;
 
 import ch03.engine.Context;
-import ch03.util.Strings;
 
 
 /**
@@ -20,6 +19,6 @@ public class PlusExpression extends OperatorExpression {
   }
 
   public String toString() {
-    return Strings.toString(left)+"+"+Strings.toString(right);
+    return (left!=null ? left.toString() : "null")+"+"+(right!=null ? right.toString() : "null");
   }
 }

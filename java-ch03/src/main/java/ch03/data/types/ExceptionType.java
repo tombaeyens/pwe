@@ -7,7 +7,7 @@ import ch03.data.TypedValue;
 /**
  * @author Tom Baeyens
  */
-public class ExceptionType implements Type {
+public class ExceptionType extends AbstractType {
 
   public static final ExceptionType INSTANCE = new ExceptionType();
 

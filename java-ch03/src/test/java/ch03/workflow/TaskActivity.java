@@ -14,7 +14,7 @@ public class TaskActivity extends Activity {
 
   @Override
   public void start(ActivityInstance activityInstance, Context context, Controller controller) {
-    TaskService taskService = context.findExternally(TaskService.class);
+    TaskService taskService = context.getExternal(TaskService.class);
     // TODO
     controller.onwards();
   }

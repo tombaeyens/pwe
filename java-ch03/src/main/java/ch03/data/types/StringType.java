@@ -7,7 +7,7 @@ import ch03.data.TypedValue;
 /**
  * @author Tom Baeyens
  */
-public class StringType implements Type {
+public class StringType extends AbstractType {
   
   public static StringType INSTANCE = new StringType();
 

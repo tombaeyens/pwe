@@ -7,7 +7,7 @@ import ch03.data.TypedValue;
 /**
  * @author Tom Baeyens
  */
-public class ContextType implements Type {
+public class ContextType extends AbstractType {
 
   public static final ContextType INSTANCE = new ContextType();
 

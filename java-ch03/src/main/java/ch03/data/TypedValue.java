@@ -36,4 +36,9 @@ public class TypedValue {
   public void set(String key, TypedValue value) {
     type.set(this.value, key, value);
   }
+
+  @Override
+  public String toString() {
+    return (type!=null ? type.toString() : "untyped")+"("+value+")";
+  }
 }

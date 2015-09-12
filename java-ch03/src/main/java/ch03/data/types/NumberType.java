@@ -7,7 +7,7 @@ import ch03.data.TypedValue;
 /**
  * @author Tom Baeyens
  */
-public class NumberType implements Type {
+public class NumberType extends AbstractType {
   
   public static NumberType INSTANCE = new NumberType();
   

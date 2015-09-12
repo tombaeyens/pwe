@@ -1,30 +1,19 @@
 package ch03.engine;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
-import ch03.data.InputExpression;
-import ch03.data.OutputExpression;
 import ch03.data.TypedValue;
-import ch03.engine.context.SubContext;
 import ch03.engine.operation.HandleMessage;
 import ch03.engine.operation.Operation;
-import ch03.engine.operation.StartWorkflow;
-import ch03.engine.state.Starting;
-import ch03.model.Activity;
 import ch03.model.ActivityInstance;
 import ch03.model.ScopeInstance;
-import ch03.model.Variable;
 import ch03.model.VariableInstance;
-import ch03.model.Workflow;
 import ch03.model.WorkflowInstance;
 
 
-/** Represents the workflow interpretation when it's being allocated to a Thread. 
- *   
+/** 
+ * Represents the current execution point while a workflow is being interpretated.
  * @author Tom Baeyens
  */
 public class Engine {
@@ -38,27 +27,9 @@ public class Engine {
   EngineListener engineListener = null;
   Asynchronizer asynchronizer = null;
   
-  public Engine() {
-    initializeExecutionContext();
-    initializeExecutionController();
-  }
-  
-  /** can be overriden by subclasses to customize context behavior */
-  protected void initializeExecutionContext() {
-    context = new ContextImpl(this);
-  }
-
-  /** can be overriden by subclasses to customize controller behavior */
-  protected void initializeExecutionController() {
-    controller = new ControllerImpl(this);
-  }
-
   public ContextImpl getContext() {
     return context;
   }
-  
-
-  
 
   public WorkflowInstance handleActivityInstanceMessage(ActivityInstance activityInstance) {
     return handleActivityInstanceMessage(activityInstance, null);
@@ -73,7 +44,8 @@ public class Engine {
     context.initializeVariables();
   }
 
-  public void leaveScope(SubContext subContext) {
+  public void leaveScope() {
+    // TODO cancel timers
   }
   
   protected void perform(Operation operation) {
@@ -103,7 +75,7 @@ public class Engine {
       // This execution still has more work to do.
       // At this place the persistence is in a consistent state 
       // to be resumed later if things would crash further down.
-      engineListener.savePoint(scopeInstance.getWorkflowInstance(), operations, asyncOperations);
+      engineListener.transactionSave(scopeInstance.getWorkflowInstance(), operations, asyncOperations);
       Operation current = operations.removeFirst();
       engineListener.operationSynchronousRemoved(current);
       this.scopeInstance = current.getScopeInstance();
@@ -119,7 +91,7 @@ public class Engine {
       asynchronizer.continueAsynchrous(this);
     }
     // No more work to be done
-    engineListener.flush(scopeInstance.getWorkflowInstance());
+    engineListener.transactionEnd(scopeInstance.getWorkflowInstance());
   }
   
   /** It's the responsibility of the asynchronizer to call this 
@@ -160,17 +132,14 @@ public class Engine {
     return scopeInstance;
   }
 
-  
   public boolean isAsync() {
     return isAsync;
   }
 
-  
   public LinkedList<Operation> getOperations() {
     return operations;
   }
 
-  
   public LinkedList<Operation> getAsyncOperations() {
     return asyncOperations;
   }
@@ -187,42 +156,34 @@ public class Engine {
     return engineListener;
   }
 
-  
   public void setEngineListener(EngineListener engineListener) {
     this.engineListener = engineListener;
   }
 
-  
   public void setScopeInstance(ScopeInstance scopeInstance) {
     this.scopeInstance = scopeInstance;
   }
 
-  
   public void setAsync(boolean isAsync) {
     this.isAsync = isAsync;
   }
 
-  
   public void setOperations(LinkedList<Operation> operations) {
     this.operations = operations;
   }
 
-  
   public void setAsyncOperations(LinkedList<Operation> asyncOperations) {
     this.asyncOperations = asyncOperations;
   }
 
-  
-  public void setContext(ContextImpl executionContext) {
-    this.context = executionContext;
+  public void setContext(ContextImpl context) {
+    this.context = context;
   }
 
-  
-  public void setController(ControllerImpl executionController) {
-    this.controller = executionController;
+  public void setController(ControllerImpl controller) {
+    this.controller = controller;
   }
 
-  
   public void setAsynchronizer(Asynchronizer asynchronizer) {
     this.asynchronizer = asynchronizer;
   }

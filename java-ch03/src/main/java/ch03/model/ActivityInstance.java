@@ -1,5 +1,10 @@
 package ch03.model;
 
+import java.util.Map;
+
+import ch03.data.TypedValue;
+import ch03.engine.Engine;
+
 
 /**
  * @author Tom Baeyens
@@ -9,7 +14,11 @@ public class ActivityInstance extends ScopeInstance {
   protected Activity activity;
   
   public void handleMessage() {
-    
+    handleMessage(null);
+  }
+  public void handleMessage(Map<String,TypedValue> messageData) {
+    Engine engine = getWorkflowInstance().getEngine();
+    engine.handleActivityInstanceMessage(this, messageData);
   }
   
   @Override

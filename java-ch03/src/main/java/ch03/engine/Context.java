@@ -13,11 +13,10 @@ import ch03.model.Transition;
 public interface Context {
 
   SubContext getExternalContext();
-  Object findExternally(String key);
-  <T> T findExternally(Class<T> type);
+  Object getExternal(String key);
+  <T> T getExternal(Class<T> type);
 
   TypedValue get(String key);
-
   void set(String key, TypedValue value);
 
   boolean isConditionMet(Condition condition);

@@ -24,15 +24,9 @@ import ch03.model.WorkflowInstance;
  */
 public class ControllerImpl implements Controller {
   
-  Engine engine;
-  ContextImpl context;
-  EngineListener engineListener;
-
-  public ControllerImpl(Engine engine) {
-    this.engine = engine;
-    this.context = engine.context;
-    this.engineListener = engine.engineListener;
-  }
+  protected Engine engine;
+  protected ContextImpl context;
+  protected EngineListener engineListener;
 
   public WorkflowInstance createWorkfowInstance(Workflow workflow) {
     WorkflowInstance workflowInstance = engine.instantiateWorkflowInstance();
@@ -40,7 +34,7 @@ public class ControllerImpl implements Controller {
     workflowInstance.setWorkflow(workflow);
     workflowInstance.setScope(workflow);
     workflowInstance.setState(new Starting());
-    engineListener.workflowInstanceCreated(workflowInstance);
+    engineListener.transactionStartWorkflowInstance(workflowInstance);
     engine.setScopeInstance(workflowInstance);
     engine.enterScope();
     return workflowInstance;
@@ -208,5 +202,35 @@ public class ControllerImpl implements Controller {
         engineListener.workflowInstanceEnded((WorkflowInstance)scopeInstance);
       }
     }
+  }
+
+  
+  public Engine getEngine() {
+    return engine;
+  }
+
+  
+  public void setEngine(Engine engine) {
+    this.engine = engine;
+  }
+
+  
+  public ContextImpl getContext() {
+    return context;
+  }
+
+  
+  public void setContext(ContextImpl context) {
+    this.context = context;
+  }
+
+  
+  public EngineListener getEngineListener() {
+    return engineListener;
+  }
+
+  
+  public void setEngineListener(EngineListener engineListener) {
+    this.engineListener = engineListener;
   }
 }

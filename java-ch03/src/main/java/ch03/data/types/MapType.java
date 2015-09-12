@@ -9,7 +9,7 @@ import ch03.data.TypedValue;
 /**
  * @author Tom Baeyens
  */
-public class MapType implements Type {
+public class MapType extends AbstractType {
   
   public static MapType INSTANCE = new MapType();
 

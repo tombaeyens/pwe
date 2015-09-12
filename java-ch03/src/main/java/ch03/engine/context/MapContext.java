@@ -1,6 +1,5 @@
 package ch03.engine.context;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import ch03.data.TypedValue;
