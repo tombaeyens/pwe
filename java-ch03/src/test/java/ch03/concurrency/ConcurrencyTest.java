@@ -18,26 +18,23 @@ public class ConcurrencyTest {
   
   @Test
   public void test() {
-    TestEngineFactory engineFactory = new TestEngineFactory();
+    TestEngineFactory testEngineFactory = new TestEngineFactory();
 
     Workflow workflow = new Workflow();
-    workflow.setEngineFactory(engineFactory);
+    workflow.setEngineFactory(testEngineFactory);
     ExternalSync externalSync = workflow.add("externalSync", new ExternalSync());
     InternalAsync internalAsync = workflow.add("internalAsync", new InternalAsync());
     externalSync.createTransitionTo(internalAsync);
 
-    WorkflowInstance workflowInstance = workflow.start();
+    String workflowInstanceId = workflow.start();
+    
+    WorkflowInstance workflowInstance = testEngineFactory.findWorkflowInstanceById(workflowInstanceId);
     
     workflowInstance
       .findActivityInstanceByActivityIdRecursive("externalSync")
       .handleMessage();
     
     assertTrue(workflowInstance.isEnded());
-    
-    System.out.println(engineFactory.getLogs());
   }
 
-//  public static Log log(String threadId, String message) {
-//    return new Log(threadId, message);
-//  }
 }

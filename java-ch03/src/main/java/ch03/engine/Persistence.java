@@ -15,7 +15,7 @@ import ch03.model.WorkflowInstance;
  * interface for connecting persistent storage to the workflow instance execution updates.
  * @author Tom Baeyens 
  */
-public interface EngineListener {
+public interface Persistence {
 
   /** also must assign the id */
   void transactionStartWorkflowInstance(WorkflowInstance workflowInstance);

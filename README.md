@@ -185,8 +185,15 @@ end up as a series of blog posts or a book.
 
 # Implementation aspects
 
-  * Multi tenancy
-  * Access control
+  * Multi tenancy: how to layer it on top
+  * Access control: how to layer it on top
+  * Immutable, serializable workflow instance copies
+    * When the workflow instance object is passed for asynchronous work,
+      the client should get an immutable, serializable snapshot of the 
+      workflow instance.
+    * Alternatively an optional visitor could be passed in the engine 
+      that walks the workflow instance model before work goes 
+      asynchronous.   
   * Persistence
     * Store, load and resume execution
     * Transactional workflow instance state changes

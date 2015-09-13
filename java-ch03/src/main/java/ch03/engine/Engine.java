@@ -1,14 +1,19 @@
 package ch03.engine;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import ch03.data.TypedValue;
+import ch03.engine.context.MapContext;
 import ch03.engine.operation.HandleMessage;
 import ch03.engine.operation.Operation;
+import ch03.engine.state.Starting;
+import ch03.model.Activity;
 import ch03.model.ActivityInstance;
 import ch03.model.ScopeInstance;
 import ch03.model.VariableInstance;
+import ch03.model.Workflow;
 import ch03.model.WorkflowInstance;
 import ch03.util.Logger;
 import ch03.util.LoggerFactory;
@@ -28,11 +33,46 @@ public class Engine {
   LinkedList<Operation> asyncOperations = null;
   ContextImpl context = null;
   ControllerImpl controller = null;
-  EngineListener engineListener = null;
+  Persistence persistence = null;
   Asynchronizer asynchronizer = null;
   
   public ContextImpl getContext() {
     return context;
+  }
+
+  public String startWorkfowInstance(Workflow workflow, Map<String, TypedValue> startData, List<Activity> startActivities) {
+    WorkflowInstance workflowInstance = instantiateWorkflowInstance();
+    workflowInstance.setEngine(this);
+    workflowInstance.setWorkflow(workflow);
+    workflowInstance.setScope(workflow);
+    workflowInstance.setState(new Starting());
+    persistence.transactionStartWorkflowInstance(workflowInstance);
+    log.debug("Created workflow instance %s", workflowInstance);
+    setScopeInstance(workflowInstance);
+    enterScope();
+    // applying the start data
+    if (startData!=null && !startData.isEmpty() && workflow.getInputParameters()!=null) {
+      MapContext startDataContext = new MapContext("startData", startData);
+      // adding the start data subcontext after the subcontext context
+      context.addSubContext(0, startDataContext);
+      Map<String, TypedValue> inputs = context.readInputs();
+      context.removeSubContext(startDataContext);
+      for (String inputKey: inputs.keySet()) {
+        TypedValue inputValue = inputs.get(inputKey);
+        context.setVariableInstanceValue(inputKey, inputValue);
+      }
+    }
+    // if there are no client specified start activities...
+    if (startActivities==null) {
+      // take the start activities defined by the workflow
+      startActivities = workflow.getStartActivities();
+    }
+    List<ActivityInstance> activityInstances = controller.startActivityInstances(startActivities);
+    if (activityInstances.isEmpty()) {
+      controller.endScopeInstance();
+    }
+    executeOperations();
+    return workflowInstance.getId();
   }
 
   public WorkflowInstance handleActivityInstanceMessage(ActivityInstance activityInstance) {
@@ -40,7 +80,8 @@ public class Engine {
   }
 
   public WorkflowInstance handleActivityInstanceMessage(ActivityInstance activityInstance, Map<String,TypedValue> messageData) {
-    perform(new HandleMessage(activityInstance, messageData));
+    addOperation(new HandleMessage(activityInstance, messageData));
+    executeOperations();
     return activityInstance.getWorkflowInstance();
   }
   
@@ -52,23 +93,12 @@ public class Engine {
     // TODO cancel timers
   }
   
-  protected void perform(Operation operation) {
-    if (operations==null) {
-      operations = new LinkedList<>();
-      addOperation(operation);
-      executeOperations();
-      executeAsynchronousOperations();
-    } else {
-      addOperation(operation);
-    }
-  }
-
-  protected void addOperation(Operation operation) {
+  public void addOperation(Operation operation) {
     if (isAsync || !operation.isAsynchronous()) {
       operations.add(operation);
-      engineListener.operationSynchronousAdded(operation);
+      persistence.operationSynchronousAdded(operation);
     } else {
-      engineListener.operationAsynchronousAdded(operation);
+      persistence.operationAsynchronousAdded(operation);
       if (asyncOperations==null) {
         asyncOperations = new LinkedList<>();
       }
@@ -76,35 +106,47 @@ public class Engine {
     }
   }
 
-  protected void executeOperations() {
+  public void executeOperations() {
+    if (operations==null) {
+      operations = new LinkedList<>();
+      executeSynchronousOperations(true);
+      executeAsynchronousOperations();
+    }
+  }
+
+  protected void executeSynchronousOperations(boolean skipFirstSave) {
+    boolean save = !skipFirstSave;
     while (!operations.isEmpty()) {
-      // This execution still has more work to do.
       // At this place the persistence is in a consistent state 
       // to be resumed later if things would crash further down.
-      
       Operation current = operations.getFirst();
-      if (current.requiresTransactionSave()) {
-        transactionSave();
+      if (save) {
+        if (current.requiresTransactionSave()) {
+           transactionSave();
+        }
+      } else {
+        save = true; 
       }
       operations.removeFirst();
-      engineListener.operationSynchronousRemoved(current);
+      persistence.operationSynchronousRemoved(current);
       this.scopeInstance = current.getScopeInstance();
       current.perform(this, context, controller);
     }
   }
 
   protected void transactionSave() {
-    engineListener.transactionSave(scopeInstance.getWorkflowInstance(), operations, asyncOperations);
+    persistence.transactionSave(scopeInstance.getWorkflowInstance(), operations, asyncOperations);
   }
 
   protected void executeAsynchronousOperations() {
+    WorkflowInstance workflowInstance = scopeInstance.getWorkflowInstance();
     if (asyncOperations!=null && !asyncOperations.isEmpty()) {
       operations = asyncOperations;
       asyncOperations = null;
       asynchronizer.continueAsynchrous(this);
     }
     // No more work to be done
-    engineListener.transactionEnd(scopeInstance.getWorkflowInstance());
+    persistence.transactionEnd(workflowInstance);
     operations = null;
     asyncOperations = null;
   }
@@ -113,16 +155,15 @@ public class Engine {
    * method in a different thread */
   public void continueAsynchrous() {
     isAsync = true;
-    executeOperations();
+    executeSynchronousOperations(false);
     // there should be no further asynchronous work here
   }
   
   /** Resumes a crashed workflow instance after being restored 
    * from persistence. */  
   public void resume() {
-    executeOperations();
+    executeSynchronousOperations(false);
     executeAsynchronousOperations();
-    
   }
   
 
@@ -167,12 +208,12 @@ public class Engine {
     return controller;
   }
 
-  public EngineListener getEngineListener() {
-    return engineListener;
+  public Persistence getPersistence() {
+    return persistence;
   }
 
-  public void setEngineListener(EngineListener engineListener) {
-    this.engineListener = engineListener;
+  public void setPersistence(Persistence persistence) {
+    this.persistence = persistence;
   }
 
   public void setScopeInstance(ScopeInstance scopeInstance) {

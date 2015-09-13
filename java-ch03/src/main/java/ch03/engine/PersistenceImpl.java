@@ -17,7 +17,7 @@ import ch03.model.WorkflowInstance;
 /**
  * @author Tom Baeyens
  */
-public class EngineListenerImpl implements EngineListener {
+public class PersistenceImpl implements Persistence {
   
   List<String> updates = new ArrayList<>();
   WorkflowInstance workflowInstance;

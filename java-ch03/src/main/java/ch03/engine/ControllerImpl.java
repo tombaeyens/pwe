@@ -32,40 +32,8 @@ public class ControllerImpl implements Controller {
   
   protected Engine engine;
   protected ContextImpl context;
-  protected EngineListener engineListener;
+  protected Persistence persistence;
 
-  public WorkflowInstance startWorkfowInstance(Workflow workflow, Map<String, TypedValue> startData, List<Activity> startActivities) {
-    WorkflowInstance workflowInstance = engine.instantiateWorkflowInstance();
-    workflowInstance.setEngine(engine);
-    workflowInstance.setWorkflow(workflow);
-    workflowInstance.setScope(workflow);
-    workflowInstance.setState(new Starting());
-    engineListener.transactionStartWorkflowInstance(workflowInstance);
-    log.debug("Created workflow instance %s", workflowInstance);
-    engine.setScopeInstance(workflowInstance);
-    engine.enterScope();
-    applyStartData(workflow, workflowInstance, startData);
-    if (startActivities==null) {
-      startActivities = workflow.getStartActivities();
-    }
-    startActivityInstances(startActivities);
-    return workflowInstance;
-  }
-
-  public void applyStartData(Workflow workflow, WorkflowInstance workflowInstance, Map<String, TypedValue> startData) {
-    if (startData!=null && !startData.isEmpty() && workflow.getInputParameters()!=null) {
-      ContextImpl context = engine.getContext();
-      MapContext startDataContext = new MapContext("startData", startData);
-      // adding the start data subcontext after the subcontext context
-      context.addSubContext(0, startDataContext);
-      Map<String, TypedValue> inputs = context.readInputs();
-      context.removeSubContext(startDataContext);
-      for (String inputKey: inputs.keySet()) {
-        TypedValue inputValue = inputs.get(inputKey);
-        context.setVariableInstanceValue(inputKey, inputValue);
-      }
-    }
-  }
 
   /** starts the given scope */
   @Override
@@ -86,13 +54,13 @@ public class ControllerImpl implements Controller {
     activityInstance.setParent(parentScopeInstance);
     parentScopeInstance.getActivityInstances().add(activityInstance);
 
-    engineListener.activityInstanceCreated(activityInstance);
+    persistence.activityInstanceCreated(activityInstance);
     String format = parentScopeInstance.isActivityInstance() 
             ? "Create activity instance %s inside activity instance %s"
             : "Create activity instance %s";
     log.debug(format, activityInstance, parentScopeInstance);
     
-    engine.perform(new StartActivity(activityInstance));
+    engine.addOperation(new StartActivity(activityInstance));
     return activityInstance;
   }
 
@@ -221,9 +189,9 @@ public class ControllerImpl implements Controller {
     ExecutionState oldState = scopeInstance.getState(); 
     scopeInstance.setState(state);
     if (scopeInstance.isActivityInstance()) {
-      engineListener.activityInstanceStateUpdate((ActivityInstance)scopeInstance, oldState);
+      persistence.activityInstanceStateUpdate((ActivityInstance)scopeInstance, oldState);
     } else {
-      engineListener.workflowInstanceStateUpdate((WorkflowInstance)scopeInstance, oldState);
+      persistence.workflowInstanceStateUpdate((WorkflowInstance)scopeInstance, oldState);
     }
   }
   
@@ -233,10 +201,10 @@ public class ControllerImpl implements Controller {
       scopeInstance.setState(new Ended());
       if (scopeInstance.isActivityInstance()) {
         log.debug("Ending activity instance %s", scopeInstance);
-        engineListener.activityInstanceEnded((ActivityInstance)scopeInstance);
+        persistence.activityInstanceEnded((ActivityInstance)scopeInstance);
       } else {
         log.debug("Ending workflow instance %s", scopeInstance);
-        engineListener.workflowInstanceEnded((WorkflowInstance)scopeInstance);
+        persistence.workflowInstanceEnded((WorkflowInstance)scopeInstance);
       }
     }
   }
@@ -262,13 +230,13 @@ public class ControllerImpl implements Controller {
   }
 
   
-  public EngineListener getEngineListener() {
-    return engineListener;
+  public Persistence getPersistence() {
+    return persistence;
   }
 
   
-  public void setEngineListener(EngineListener engineListener) {
-    this.engineListener = engineListener;
+  public void setPersistence(Persistence persistence) {
+    this.persistence = persistence;
   }
 
 }

@@ -26,16 +26,16 @@ public class EngineFactoryImpl implements EngineFactory {
     Engine engine = instantiateEngine();
     ControllerImpl controller = instantiateController();
     ContextImpl context = instantiateContext();
-    EngineListenerImpl engineListener = instantiateEngineListener();
+    PersistenceImpl persistence = instantiatePersistence();
     AsynchronizerImpl asynchronizer = instantiateAsynchronizer();
 
     engine.setController(controller);
     engine.setContext(context);
-    engine.setEngineListener(engineListener);
+    engine.setPersistence(persistence);
     engine.setAsynchronizer(asynchronizer);
     
     controller.setEngine(engine);
-    controller.setEngineListener(engineListener);
+    controller.setPersistence(persistence);
     controller.setContext(context);
     
     context.setEngine(engine);
@@ -60,8 +60,8 @@ public class EngineFactoryImpl implements EngineFactory {
     return new ContextImpl();
   }
 
-  protected EngineListenerImpl instantiateEngineListener() {
-    return new EngineListenerImpl();
+  protected PersistenceImpl instantiatePersistence() {
+    return new PersistenceImpl();
   }
 
   protected AsynchronizerImpl instantiateAsynchronizer() {

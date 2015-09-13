@@ -166,7 +166,7 @@ public class ContextImpl implements Context {
     variableInstance.setScopeInstance(scopeInstance);
     variableInstance.setTypedValue(initialValue);
     scopeInstance.getVariableInstances().put(variableId, variableInstance);
-    engine.getEngineListener().variableInstanceCreated(variableInstance);
+    engine.getPersistence().variableInstanceCreated(variableInstance);
     if (variable!=null) {
       log.debug("Created variable instance  [%s|%s] : %s", variableInstance.getId(), variable.getId(), variable.getType());
     } else if (initialValue!=null) {
@@ -200,7 +200,7 @@ public class ContextImpl implements Context {
     } else {
       log.debug("Set variable value [%s] = %s", variableInstance.getId(), newValue);
     }
-    engine.getEngineListener().variableInstanceValueUpdated(variableInstance, oldValue);
+    engine.getPersistence().variableInstanceValueUpdated(variableInstance, oldValue);
   }
   
 

@@ -20,21 +20,21 @@ import ch03.engine.context.MapContext;
  */
 public class Workflow extends Scope {
 
+  protected boolean isStartAsynchronous;
   protected EngineFactory engineFactory;
   protected List<Activity> startActivities = null;
   
-  public WorkflowInstance start() {
+  public String start() {
     return start(null, null);
   }
   
-  public WorkflowInstance start(Map<String, TypedValue> startData) {
+  public String start(Map<String, TypedValue> startData) {
     return start(startData, null);
   }
 
-  public WorkflowInstance start(Map<String, TypedValue> startData, List<Activity> startActivities) {
+  public String start(Map<String, TypedValue> startData, List<Activity> startActivities) {
     return getEngineFactory()
             .createEngine()
-            .getController()
             .startWorkfowInstance(this, startData, startActivities);
   }
   
@@ -86,5 +86,20 @@ public class Workflow extends Scope {
       engineFactory = new EngineFactoryImpl();
     }
     this.engineFactory = engineFactory;
+  }
+
+  
+  public boolean isStartAsynchronous() {
+    return isStartAsynchronous;
+  }
+  
+  public void setStartAsynchronous(boolean isStartAsynchronous) {
+    this.isStartAsynchronous = isStartAsynchronous;
+  }
+
+  /** does the workflow need to be saved between applying the data 
+   * and starting the start activities. */
+  public boolean isStartSaved() {
+    return false;
   }
 }
