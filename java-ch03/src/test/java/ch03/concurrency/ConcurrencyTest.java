@@ -26,9 +26,7 @@ public class ConcurrencyTest {
     InternalAsync internalAsync = workflow.add("internalAsync", new InternalAsync());
     externalSync.createTransitionTo(internalAsync);
 
-    String workflowInstanceId = workflow.start();
-    
-    WorkflowInstance workflowInstance = testEngineFactory.findWorkflowInstanceById(workflowInstanceId);
+    WorkflowInstance workflowInstance = workflow.start();
     
     workflowInstance
       .findActivityInstanceByActivityIdRecursive("externalSync")

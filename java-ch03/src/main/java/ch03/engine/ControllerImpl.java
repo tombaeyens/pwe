@@ -132,6 +132,17 @@ public class ControllerImpl implements Controller {
     return null;
   }
 
+  /** adds a listener to be notified when the execution is done and 
+   * persisted.  This listening is needed for notifications of external 
+   * activity instances.  If external systems were already notified in the 
+   * activity execution, their reaction could come back to the workflow engine 
+   * before the current state is persisted.
+   */
+  @Override
+  public void addExecutionListener(ExecutionListener executionListener) {
+    engine.addExecutionListener(executionListener);
+  }
+
   /** puts the current execution flow on hold in the current activity instance till 
    * an external service signals completion */
   @Override
@@ -238,5 +249,4 @@ public class ControllerImpl implements Controller {
   public void setPersistence(Persistence persistence) {
     this.persistence = persistence;
   }
-
 }

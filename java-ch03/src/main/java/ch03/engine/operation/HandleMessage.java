@@ -23,7 +23,6 @@ public class HandleMessage extends Operation {
 
   @Override
   public void perform(Engine engine, ContextImpl context, ControllerImpl controller) {
-    activityInstance.getActivity().handleMessage(activityInstance, context, controller, messageData);
   }
   
   public String toString() {

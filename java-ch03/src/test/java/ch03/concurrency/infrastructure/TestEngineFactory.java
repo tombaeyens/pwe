@@ -2,15 +2,12 @@ package ch03.concurrency.infrastructure;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import ch03.data.TypedValue;
 import ch03.engine.AsynchronizerImpl;
 import ch03.engine.EngineFactoryImpl;
-import ch03.engine.PersistenceImpl;
 import ch03.engine.context.MapContext;
 import ch03.engine.context.SubContext;
-import ch03.model.WorkflowInstance;
 
 
 /**
@@ -22,7 +19,6 @@ public class TestEngineFactory extends EngineFactoryImpl {
   int nextThreadId = 1;
   TestAsynchronizer asynchronizer;
   TestConsole testConsole;
-  Map<String,WorkflowInstance> workflowInstances = new HashMap<>();
   
   public TestEngineFactory() {
     super();
@@ -45,17 +41,5 @@ public class TestEngineFactory extends EngineFactoryImpl {
   public List<Log> getLogs() {
     return testConsole.getLogs();
   }
-  
-  @Override
-  protected PersistenceImpl instantiatePersistence() {
-    return new TestPersistence(this);
-  }
 
-  public void addWorkflowInstance(WorkflowInstance workflowInstance) {
-    workflowInstances.put(workflowInstance.getId(), workflowInstance);
-  }
-  
-  public WorkflowInstance findWorkflowInstanceById(String workflowInstanceId) {
-    return workflowInstances.get(workflowInstanceId);
-  }
 }

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import ch03.data.Type;
 import ch03.data.TypedValue;
 import ch03.engine.operation.Operation;
 import ch03.engine.state.ExecutionState;
@@ -117,7 +116,7 @@ public class PersistenceImpl implements Persistence {
   }
 
   @Override
-  public void transactionSave(WorkflowInstance workflowInstance, List<Operation> operations, List<Operation> asyncOperations) {
+  public void transactionSave(WorkflowInstance workflowInstance, List<Operation> operations, List<Operation> asyncOperations, List<ExecutionListener> executionListeners) {
     System.out.println(" | Transaction savepoint for "+workflowInstance.getId());
     for (String update: updates) {
       System.out.println(" | "+update);
@@ -126,7 +125,12 @@ public class PersistenceImpl implements Persistence {
   }
 
   @Override
-  public void transactionEnd(WorkflowInstance workflowInstance) {
+  public void transactionEnd(WorkflowInstance workflowInstance, List<ExecutionListener> executionListeners) {
     System.out.println("Transaction ends for "+workflowInstance.getId());
+  }
+
+  @Override
+  public void executionListenerAdded(ExecutionListener executionListener) {
+    addUpdate("Add execution listener "+executionListener);
   }
 }

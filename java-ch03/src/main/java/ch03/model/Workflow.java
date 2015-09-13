@@ -6,13 +6,10 @@ import java.util.Map;
 
 import ch03.data.TypedValue;
 import ch03.engine.Context;
-import ch03.engine.ContextImpl;
 import ch03.engine.Controller;
-import ch03.engine.ControllerImpl;
 import ch03.engine.Engine;
 import ch03.engine.EngineFactory;
 import ch03.engine.EngineFactoryImpl;
-import ch03.engine.context.MapContext;
 
 
 /**
@@ -24,18 +21,22 @@ public class Workflow extends Scope {
   protected EngineFactory engineFactory;
   protected List<Activity> startActivities = null;
   
-  public String start() {
+  /** beware, when using a real asynchronizer, the returned workflow instance can be 
+   * changed concurrently by asynchronous work.
+   * A safe copy can be obtained only right before asynchronous work is started. */
+  public WorkflowInstance start() {
     return start(null, null);
   }
   
-  public String start(Map<String, TypedValue> startData) {
+  public WorkflowInstance start(Map<String, TypedValue> startData) {
     return start(startData, null);
   }
 
-  public String start(Map<String, TypedValue> startData, List<Activity> startActivities) {
-    return getEngineFactory()
-            .createEngine()
-            .startWorkfowInstance(this, startData, startActivities);
+  public WorkflowInstance start(Map<String, TypedValue> startData, List<Activity> startActivities) {
+    Engine engine = getEngineFactory().createEngine();
+    WorkflowInstance workflowInstance = engine.startWorkfowInstanceSynchronous(this, startData, startActivities);
+    engine.executeAsynchronousOperations();
+    return workflowInstance;
   }
   
   public List<Activity> getStartActivities() {

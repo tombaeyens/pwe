@@ -1,5 +1,6 @@
 package ch03.engine;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -29,8 +30,9 @@ public class Engine {
   
   ScopeInstance scopeInstance;
   boolean isAsync = false;
-  LinkedList<Operation> operations = null; // null is important. @see perform(Operation)
-  LinkedList<Operation> asyncOperations = null;
+  LinkedList<Operation> operations = new LinkedList<>();
+  LinkedList<Operation> asyncOperations = new LinkedList<>();
+  List<ExecutionListener> executionListeners;
   ContextImpl context = null;
   ControllerImpl controller = null;
   Persistence persistence = null;
@@ -40,7 +42,7 @@ public class Engine {
     return context;
   }
 
-  public String startWorkfowInstance(Workflow workflow, Map<String, TypedValue> startData, List<Activity> startActivities) {
+  public WorkflowInstance startWorkfowInstanceSynchronous(Workflow workflow, Map<String, TypedValue> startData, List<Activity> startActivities) {
     WorkflowInstance workflowInstance = instantiateWorkflowInstance();
     workflowInstance.setEngine(this);
     workflowInstance.setWorkflow(workflow);
@@ -71,8 +73,8 @@ public class Engine {
     if (activityInstances.isEmpty()) {
       controller.endScopeInstance();
     }
-    executeOperations();
-    return workflowInstance.getId();
+    executeSynchronousOperations(true);
+    return workflowInstance;
   }
 
   public WorkflowInstance handleActivityInstanceMessage(ActivityInstance activityInstance) {
@@ -80,8 +82,9 @@ public class Engine {
   }
 
   public WorkflowInstance handleActivityInstanceMessage(ActivityInstance activityInstance, Map<String,TypedValue> messageData) {
-    addOperation(new HandleMessage(activityInstance, messageData));
-    executeOperations();
+    activityInstance.getActivity().handleMessage(activityInstance, context, controller, messageData);
+    executeSynchronousOperations(true);
+
     return activityInstance.getWorkflowInstance();
   }
   
@@ -99,22 +102,16 @@ public class Engine {
       persistence.operationSynchronousAdded(operation);
     } else {
       persistence.operationAsynchronousAdded(operation);
-      if (asyncOperations==null) {
-        asyncOperations = new LinkedList<>();
-      }
       asyncOperations.add(operation);
     }
   }
 
   public void executeOperations() {
-    if (operations==null) {
-      operations = new LinkedList<>();
-      executeSynchronousOperations(true);
-      executeAsynchronousOperations();
-    }
+    executeSynchronousOperations(true);
+    executeAsynchronousOperations();
   }
 
-  protected void executeSynchronousOperations(boolean skipFirstSave) {
+  public void executeSynchronousOperations(boolean skipFirstSave) {
     boolean save = !skipFirstSave;
     while (!operations.isEmpty()) {
       // At this place the persistence is in a consistent state 
@@ -135,20 +132,30 @@ public class Engine {
   }
 
   protected void transactionSave() {
-    persistence.transactionSave(scopeInstance.getWorkflowInstance(), operations, asyncOperations);
+    persistence.transactionSave(scopeInstance.getWorkflowInstance(), operations, asyncOperations, executionListeners);
   }
 
-  protected void executeAsynchronousOperations() {
+  public void executeAsynchronousOperations() {
     WorkflowInstance workflowInstance = scopeInstance.getWorkflowInstance();
     if (asyncOperations!=null && !asyncOperations.isEmpty()) {
       operations = asyncOperations;
-      asyncOperations = null;
+      asyncOperations = new LinkedList<>();
       asynchronizer.continueAsynchrous(this);
     }
     // No more work to be done
-    persistence.transactionEnd(workflowInstance);
-    operations = null;
-    asyncOperations = null;
+    
+    // Ensure the persistence is updated so that incoming requests
+    // will find the new state
+    persistence.transactionEnd(workflowInstance, executionListeners);
+    
+    // Perform all notifications to external services
+    if (executionListeners!=null) {
+      for (ExecutionListener executionListener: executionListeners) {
+        executionListener.executionEnded();
+      }
+    }
+    operations = new LinkedList<>();
+    asyncOperations = new LinkedList<>();
   }
   
   /** It's the responsibility of the asynchronizer to call this 
@@ -166,6 +173,13 @@ public class Engine {
     executeAsynchronousOperations();
   }
   
+  public void addExecutionListener(ExecutionListener executionListener) {
+    if (executionListeners==null) {
+      executionListeners = new ArrayList<>();
+    }
+    executionListeners.add(executionListener);
+    persistence.executionListenerAdded(executionListener);
+  }
 
   /** moves the position of the execution up one level to the parent of the current scopeInstance */
   public void up() {
@@ -242,5 +256,13 @@ public class Engine {
 
   public void setAsynchronizer(Asynchronizer asynchronizer) {
     this.asynchronizer = asynchronizer;
+  }
+  
+  public List<ExecutionListener> getExecutionListeners() {
+    return executionListeners;
+  }
+
+  public void setExecutionListeners(List<ExecutionListener> executionListeners) {
+    this.executionListeners = executionListeners;
   }
 }

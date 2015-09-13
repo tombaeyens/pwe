@@ -56,7 +56,7 @@ public interface Persistence {
    * be saved for the purpose of recovery. 
    * The transaction will keep on executing afterwards till {@link #transactionEnd(WorkflowInstance)}
    * is called. */
-  void transactionSave(WorkflowInstance workflowInstance, List<Operation> operations, List<Operation> asyncOperations);
+  void transactionSave(WorkflowInstance workflowInstance, List<Operation> operations, List<Operation> asyncOperations, List<ExecutionListener> executionListeners);
 
   /** No more work will be done by the engine for this workflow instance.
    * After this, the workflow instance is either ended or it will
@@ -64,6 +64,9 @@ public interface Persistence {
    * a long time.  After receiving the signal, the workflow 
    * instance could execute further. 
    * This is a good moment to update or overwrite the entire 
-   * workflow instance data structure */
-  void transactionEnd(WorkflowInstance workflowInstance);
+   * workflow instance data structure 
+   * @param executionListeners */
+  void transactionEnd(WorkflowInstance workflowInstance, List<ExecutionListener> executionListeners);
+
+  void executionListenerAdded(ExecutionListener executionListener);
 }

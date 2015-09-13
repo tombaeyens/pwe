@@ -21,6 +21,8 @@ public interface Controller {
   /** starts an activity instance for the given activity nested in the given parentScopeInstance */
   ActivityInstance startActivityInstance(Activity activity, ScopeInstance parentScopeInstance);
 
+  void addExecutionListener(ExecutionListener executionListener);
+  
   void waitForExternalMessage();
   
   List<ActivityInstance> takeTransitions(List<Transition> transitionsToTake);
