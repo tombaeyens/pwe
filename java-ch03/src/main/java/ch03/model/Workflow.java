@@ -79,7 +79,10 @@ public class Workflow extends Scope {
   }
 
   public EngineFactory getEngineFactory() {
-    return this.engineFactory;
+    if (engineFactory==null) {
+      engineFactory = new EngineFactoryImpl();
+    }
+    return engineFactory;
   }
 
   public void setEngineFactory(EngineFactory engineFactory) {

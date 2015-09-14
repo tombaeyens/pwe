@@ -2,15 +2,11 @@ package ch03.engine;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import ch03.data.TypedValue;
-import ch03.engine.context.MapContext;
 import ch03.engine.operation.StartActivity;
 import ch03.engine.state.Created;
 import ch03.engine.state.Ended;
 import ch03.engine.state.ExecutionState;
-import ch03.engine.state.Starting;
 import ch03.engine.state.WaitingForMessage;
 import ch03.model.Activity;
 import ch03.model.ActivityInstance;
@@ -20,7 +16,6 @@ import ch03.model.Transition;
 import ch03.model.Workflow;
 import ch03.model.WorkflowInstance;
 import ch03.util.Logger;
-import ch03.util.LoggerFactory;
 
 
 /**
@@ -28,9 +23,9 @@ import ch03.util.LoggerFactory;
  */
 public class ControllerImpl implements Controller {
   
-  private static final Logger log = Engine.log;
+  private static final Logger log = EngineImpl.log;
   
-  protected Engine engine;
+  protected EngineImpl engine;
   protected ContextImpl context;
   protected Persistence persistence;
 
@@ -70,7 +65,8 @@ public class ControllerImpl implements Controller {
     if (!activities.isEmpty()) {
       // for each nested activity 
       for (Activity activity: activities) {
-        startActivityInstance(activity);
+        ActivityInstance activityInstance = startActivityInstance(activity);
+        activityInstances.add(activityInstance);
       }
     }
     return activityInstances;
@@ -147,6 +143,7 @@ public class ControllerImpl implements Controller {
    * an external service signals completion */
   @Override
   public void waitForExternalMessage() {
+    log.debug("Waiting for external message "+engine.getScopeInstance());
     setState(new WaitingForMessage()); 
   }
 
@@ -221,12 +218,12 @@ public class ControllerImpl implements Controller {
   }
 
   
-  public Engine getEngine() {
+  public EngineImpl getEngine() {
     return engine;
   }
 
   
-  public void setEngine(Engine engine) {
+  public void setEngine(EngineImpl engine) {
     this.engine = engine;
   }
 

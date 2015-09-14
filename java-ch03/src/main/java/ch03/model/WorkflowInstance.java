@@ -1,6 +1,6 @@
 package ch03.model;
 
-import ch03.engine.Engine;
+import ch03.engine.EngineImpl;
 
 
 /**
@@ -9,7 +9,7 @@ import ch03.engine.Engine;
 public class WorkflowInstance extends ScopeInstance {
   
   public Workflow workflow;
-  public Engine engine;
+  public EngineImpl engine;
 
   public WorkflowInstance getWorkflowInstance() {
     return this;
@@ -41,12 +41,12 @@ public class WorkflowInstance extends ScopeInstance {
   }
 
   
-  public Engine getEngine() {
+  public EngineImpl getEngine() {
     return engine;
   }
 
   
-  public void setEngine(Engine engine) {
+  public void setEngine(EngineImpl engine) {
     this.engine = engine;
   }
 }

@@ -18,10 +18,10 @@ import ch03.model.WorkflowInstance;
 public interface Persistence {
 
   /** also must assign the id */
-  void transactionStartWorkflowInstance(WorkflowInstance workflowInstance);
+  void workStartWorkflowInstance(WorkflowInstance workflowInstance);
 
   /** also must assign the id */
-  void transactionStartHandleMessage(ActivityInstance activityInstance, Map<String,TypedValue> messageData);
+  void workStartHandleMessage(ActivityInstance activityInstance, Map<String,TypedValue> messageData);
 
   /** implies variableInstanceValueUpdated for the initial value. 
    * also must assign the id */
@@ -51,12 +51,14 @@ public interface Persistence {
 
   void operationAsynchronousAdded(Operation operation);
 
+  void executionListenerAdded(ExecutionListener executionListener);
+
   /** called before an activity instance is started and 
    * when the updates and operations given are in a consistent state to 
    * be saved for the purpose of recovery. 
    * The transaction will keep on executing afterwards till {@link #transactionEnd(WorkflowInstance)}
    * is called. */
-  void transactionSave(WorkflowInstance workflowInstance, List<Operation> operations, List<Operation> asyncOperations, List<ExecutionListener> executionListeners);
+  void workSave(WorkflowInstance workflowInstance, List<Operation> operations, List<Operation> asyncOperations, List<ExecutionListener> executionListeners);
 
   /** No more work will be done by the engine for this workflow instance.
    * After this, the workflow instance is either ended or it will
@@ -66,7 +68,5 @@ public interface Persistence {
    * This is a good moment to update or overwrite the entire 
    * workflow instance data structure 
    * @param executionListeners */
-  void transactionEnd(WorkflowInstance workflowInstance, List<ExecutionListener> executionListeners);
-
-  void executionListenerAdded(ExecutionListener executionListener);
+  void workEnd(WorkflowInstance workflowInstance, List<ExecutionListener> executionListeners);
 }

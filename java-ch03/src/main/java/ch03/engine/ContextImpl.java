@@ -26,15 +26,15 @@ import ch03.util.Logger;
  */
 public class ContextImpl implements Context {
 
-  private static final Logger log = Engine.log;
+  private static final Logger log = EngineImpl.log;
 
-  Engine engine;
+  EngineImpl engine;
   VariablesContext variablesContext;
   ConfigurationsContext configurationsContext;
   SubContext externalContext;
   List<SubContext> subContexts = new ArrayList<>();
   
-  public void setEngine(Engine engine) {
+  public void setEngine(EngineImpl engine) {
     this.engine = engine;
     initializeVariablesContext();
     initializeConfigurationsContext();
@@ -223,7 +223,7 @@ public class ContextImpl implements Context {
   }
 
   
-  public Engine getEngine() {
+  public EngineImpl getEngine() {
     return engine;
   }
 

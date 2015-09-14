@@ -11,12 +11,15 @@ import ch03.model.ActivityInstance;
 import ch03.model.ScopeInstance;
 import ch03.model.VariableInstance;
 import ch03.model.WorkflowInstance;
+import ch03.util.Logger;
 
 
 /**
  * @author Tom Baeyens
  */
 public class PersistenceImpl implements Persistence {
+  
+  private static final Logger log = EngineImpl.log;
   
   List<String> updates = new ArrayList<>();
   WorkflowInstance workflowInstance;
@@ -41,18 +44,18 @@ public class PersistenceImpl implements Persistence {
   }
   
   @Override
-  public void transactionStartWorkflowInstance(WorkflowInstance workflowInstance) {
+  public void workStartWorkflowInstance(WorkflowInstance workflowInstance) {
     String workflowInstanceId = nextWorkflowInstanceId(workflowInstance);
     workflowInstance.setId(workflowInstanceId);
-    System.out.println(" | Transaction starts for new workflow instance "+workflowInstance);
+    log.debug(" | Work starts for new workflow instance "+workflowInstance);
     this.workflowInstance = workflowInstance;
     this.updates = new ArrayList<>();
     addUpdate("Create workflow instance "+workflowInstanceId);
   }
 
   @Override
-  public void transactionStartHandleMessage(ActivityInstance activityInstance, Map<String, TypedValue> messageData) {
-    System.out.println(" | Transaction starts to handle message for activity instance "+activityInstance);
+  public void workStartHandleMessage(ActivityInstance activityInstance, Map<String, TypedValue> messageData) {
+    log.debug(" | Work starts to handle message for activity instance "+activityInstance);
     this.workflowInstance = activityInstance.getWorkflowInstance();
     this.updates = new ArrayList<>();
   }
@@ -116,17 +119,22 @@ public class PersistenceImpl implements Persistence {
   }
 
   @Override
-  public void transactionSave(WorkflowInstance workflowInstance, List<Operation> operations, List<Operation> asyncOperations, List<ExecutionListener> executionListeners) {
-    System.out.println(" | Transaction savepoint for "+workflowInstance.getId());
+  public void workSave(WorkflowInstance workflowInstance, List<Operation> operations, List<Operation> asyncOperations, List<ExecutionListener> executionListeners) {
+    log.debug(" | Work savepoint for "+workflowInstance.getId());
+    logUpdates();
+  }
+
+  protected void logUpdates() {
     for (String update: updates) {
-      System.out.println(" | "+update);
+      log.debug(" | "+update);
     }
     this.updates = new ArrayList<>();
   }
 
   @Override
-  public void transactionEnd(WorkflowInstance workflowInstance, List<ExecutionListener> executionListeners) {
-    System.out.println("Transaction ends for "+workflowInstance.getId());
+  public void workEnd(WorkflowInstance workflowInstance, List<ExecutionListener> executionListeners) {
+    log.debug(" | Work ends for "+workflowInstance.getId());
+    logUpdates();
   }
 
   @Override

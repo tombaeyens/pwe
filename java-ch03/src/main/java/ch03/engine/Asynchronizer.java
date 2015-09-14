@@ -7,6 +7,6 @@ package ch03.engine;
  */
 public interface Asynchronizer {
 
-  void continueAsynchrous(Engine engine);
+  void continueAsynchrous(EngineImpl engine);
 
 }

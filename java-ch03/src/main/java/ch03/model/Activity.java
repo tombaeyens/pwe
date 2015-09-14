@@ -32,9 +32,11 @@ public class Activity extends Scope {
    * @param context provides read/write access to variables, read access to configuration and external context.
    * @param controller provides primitive operations to control the flow of execution. */
   public void start(ActivityInstance activityInstance, Context context, Controller controller) {
+    onwards(activityInstance, context, controller);
   }
 
   public void handleMessage(ActivityInstance activityInstance, Context context, Controller controller, Map<String,TypedValue> messageData) {
+    onwards(activityInstance, context, controller);
   }
 
   public void onwards(ActivityInstance activityInstance, Context context, Controller controller) {

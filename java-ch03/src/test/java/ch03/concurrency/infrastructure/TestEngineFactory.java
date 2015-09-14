@@ -17,13 +17,12 @@ public class TestEngineFactory extends EngineFactoryImpl {
   
   String threadId = "clientThread";
   int nextThreadId = 1;
-  TestAsynchronizer asynchronizer;
   TestConsole testConsole;
+  AsynchronizerImpl asynchronizer = new AsynchronizerImpl();
   
   public TestEngineFactory() {
-    super();
-    this.asynchronizer = new TestAsynchronizer();
-    this.testConsole = new TestConsole(asynchronizer);
+    asynchronizer = new AsynchronizerImpl();
+    testConsole = new TestConsole(asynchronizer);
   }
 
   @Override
@@ -41,5 +40,4 @@ public class TestEngineFactory extends EngineFactoryImpl {
   public List<Log> getLogs() {
     return testConsole.getLogs();
   }
-
 }

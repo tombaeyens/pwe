@@ -13,12 +13,14 @@ public class ActivityInstance extends ScopeInstance {
   
   protected Activity activity;
   
-  public void handleMessage() {
-    handleMessage(null);
+  public WorkflowInstance handleMessage() {
+    return handleMessage(null);
   }
-  public void handleMessage(Map<String,TypedValue> messageData) {
+  public WorkflowInstance handleMessage(Map<String,TypedValue> messageData) {
     Engine engine = getWorkflowInstance().getEngine();
-    engine.handleActivityInstanceMessage(this, messageData);
+    WorkflowInstance handleActivityInstanceMessage = engine.handleActivityInstanceMessage(this, messageData);
+    engine.executeAsynchronousOperations();
+    return handleActivityInstanceMessage;
   }
   
   @Override

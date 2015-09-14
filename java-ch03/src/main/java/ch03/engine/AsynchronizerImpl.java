@@ -11,26 +11,28 @@ import ch03.util.Logger;
  */
 public class AsynchronizerImpl implements Asynchronizer {
 
-  private static final Logger log = Engine.log;
-  
-  protected String threadId = "clientThread";
+  private static final Logger log = EngineImpl.log;
+
+  public static final String CLIENT = "client";
+  public static final String ASYNC = "async";
+
+  protected String threadName = CLIENT;
   protected int nextThreadId = 1;
 
   @Override
-  public void continueAsynchrous(Engine engine) {
+  public void continueAsynchrous(EngineImpl engine) {
     engine.getContext().getExternal(Log.class);
-    String pausedThreadId = threadId;
-    threadId = "AsyncThread"+Integer.toString(nextThreadId++);
-    log.debug("~~~ Pretend switching to thread  "+threadId);
+    threadName = ASYNC;
+    log.debug("~~~ Switching to async work in current thread");
     try {
       engine.continueAsynchrous();
     } finally {
-      log.debug("~~~ Pretend switching back to thread "+pausedThreadId);
-      threadId = pausedThreadId;
+      log.debug("~~~ Switching back to client thread");
+      threadName = CLIENT;
     }
   }
 
-  public String getThreadId() {
-    return threadId;
+  public String getThreadName() {
+    return threadName;
   }
 }

@@ -2,7 +2,7 @@ package ch03.engine.operation;
 
 import ch03.engine.ContextImpl;
 import ch03.engine.ControllerImpl;
-import ch03.engine.Engine;
+import ch03.engine.EngineImpl;
 import ch03.model.ActivityInstance;
 import ch03.model.Scope;
 import ch03.model.ScopeInstance;
@@ -18,7 +18,7 @@ public class FlowEnded extends Operation {
   }
 
   @Override
-  public void perform(Engine engine, ContextImpl context, ControllerImpl controller) {
+  public void perform(EngineImpl engine, ContextImpl context, ControllerImpl controller) {
     ScopeInstance parentInstance = scopeInstance.getParent();
     Scope parentScope = parentInstance.getScope();
     engine.setScopeInstance(parentInstance);

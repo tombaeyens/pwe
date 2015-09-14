@@ -1,7 +1,7 @@
 package ch03.engine.context;
 
 import ch03.data.TypedValue;
-import ch03.engine.Engine;
+import ch03.engine.EngineImpl;
 
 
 /**
@@ -9,9 +9,9 @@ import ch03.engine.Engine;
  */
 public class ConfigurationsContext implements SubContext {
 
-  Engine engine;
+  EngineImpl engine;
 
-  public ConfigurationsContext(Engine engine) {
+  public ConfigurationsContext(EngineImpl engine) {
     this.engine = engine;
   }
 

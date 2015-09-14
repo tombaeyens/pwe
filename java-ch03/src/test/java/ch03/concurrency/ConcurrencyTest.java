@@ -7,6 +7,7 @@ import org.junit.Test;
 import ch03.concurrency.infrastructure.ExternalSync;
 import ch03.concurrency.infrastructure.InternalAsync;
 import ch03.concurrency.infrastructure.TestEngineFactory;
+import ch03.engine.Engine;
 import ch03.model.Workflow;
 import ch03.model.WorkflowInstance;
 
@@ -26,13 +27,18 @@ public class ConcurrencyTest {
     InternalAsync internalAsync = workflow.add("internalAsync", new InternalAsync());
     externalSync.createTransitionTo(internalAsync);
 
-    WorkflowInstance workflowInstance = workflow.start();
+    Engine engine = testEngineFactory.createEngine();
+    WorkflowInstance workflowInstance = engine.startWorkfowInstanceSynchronous(workflow);
+    engine.executeAsynchronousOperations();
+
     
     workflowInstance
       .findActivityInstanceByActivityIdRecursive("externalSync")
       .handleMessage();
     
     assertTrue(workflowInstance.isEnded());
-  }
 
+//    List<Log> logs = testEngineFactory.getLogs();
+//    assertEquals(logs.toString(), 1, logs.size());
+  }
 }
