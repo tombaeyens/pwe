@@ -17,12 +17,12 @@ public class NameExpression implements InputExpression, OutputExpression {
 
   @Override
   public TypedValue getTypedValue(Context context) {
-    return context.get(name);
+    return context.getTypedValue(name);
   }
 
   @Override
   public void setTypedValue(Context context, TypedValue value) {
-    context.set(name, value);
+    context.setTypedValue(name, value);
   }
 
   public String getName() {

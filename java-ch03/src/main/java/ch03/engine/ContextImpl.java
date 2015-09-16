@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 import ch03.data.Condition;
+import ch03.data.Converter;
 import ch03.data.InputExpression;
 import ch03.data.OutputExpression;
+import ch03.data.Type;
 import ch03.data.TypedValue;
 import ch03.engine.context.ConfigurationsContext;
 import ch03.engine.context.SubContext;
@@ -33,21 +35,12 @@ public class ContextImpl implements Context {
   ConfigurationsContext configurationsContext;
   SubContext externalContext;
   List<SubContext> subContexts = new ArrayList<>();
+  List<Converter> converters;
   
   public void setEngine(EngineImpl engine) {
     this.engine = engine;
-    initializeVariablesContext();
-    initializeConfigurationsContext();
   }
 
-  protected void initializeVariablesContext() {
-    addSubContext(new VariablesContext(engine));
-  }
-  
-  protected void initializeConfigurationsContext() {
-    addSubContext(new ConfigurationsContext(engine));
-  }
-  
   public void addSubContext(int index, SubContext subContext) {
     subContexts.add(index, subContext);
   }
@@ -68,7 +61,8 @@ public class ContextImpl implements Context {
   @Override
   public Object getExternal(String key) {
     SubContext externalContext = getExternalContext();
-    return externalContext!=null ? externalContext.get(key) : null;
+    TypedValue typedValue = externalContext!=null ? externalContext.get(key) : null;
+    return typedValue!=null ? typedValue.getValue() : null;
   }
   
   @Override
@@ -77,7 +71,7 @@ public class ContextImpl implements Context {
   }
 
   @Override
-  public TypedValue get(String key) {
+  public TypedValue getTypedValue(String key) {
     for (SubContext subContext: subContexts) {
       TypedValue typedValue = subContext.get(key);
       if (typedValue!=null) {
@@ -88,7 +82,63 @@ public class ContextImpl implements Context {
   }
 
   @Override
-  public void set(String key, TypedValue value) {
+  public TypedValue getTypedValue(InputExpression expression) {
+    return expression.getTypedValue(this);
+  }
+
+  @Override
+  public <T> T getValue(String key) {
+    TypedValue typedValue = getTypedValue(key);
+    return (T) (typedValue!=null ? typedValue.getValue(): null);
+  }
+
+  @Override
+  public <T> T getValue(String key, Type type) {
+    TypedValue typedValue = getTypedValue(key);
+    return shoehorn(typedValue, type);
+  }
+
+  @Override
+  public <T> T getValue(InputExpression expression) {
+    return (T) getValue(expression, null);
+  }
+
+  @Override
+  public <T> T getValue(InputExpression expression, Type type) {
+    TypedValue typedValue = expression.getTypedValue(this);
+    return (T) shoehorn(typedValue, type);
+  }
+
+  /** tries to convert the given typedValue to type */
+  protected <T> T shoehorn(TypedValue typedValue, Type type) {
+    Object value = typedValue!=null ? typedValue.getValue() : null;
+    if (value==null) {
+      return null;
+    }
+    Type sourceType = typedValue.getType();
+    if (type!=null && !type.equals(sourceType)) {
+      Converter converter = findConverter(typedValue, type);
+      if (converter!=null) {
+        value = converter.convert(value);
+      }
+    }
+    return (T) value;
+  }
+
+  protected Converter findConverter(TypedValue typedValue, Type type) {
+    if (converters!=null) {
+      for (Converter converter: converters) {
+        if (converter.matches(typedValue, type)) {
+          return converter;
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public void setTypedValue(String key, TypedValue value) {
+    throw new RuntimeException("Not implemented yet");
   }
   
   @Override
@@ -204,25 +254,6 @@ public class ContextImpl implements Context {
   }
   
 
-  public TypedValue getTypedValue(String key) {
-    return get(key);
-  }
-
-  public Object getValue(String key) {
-    TypedValue typedValue = get(key);
-    return typedValue!=null ? typedValue.getValue(): null;
-  }
-
-  public TypedValue getTypedValue(InputExpression expression) {
-    return expression.getTypedValue(this);
-  }
-
-  public Object getValue(InputExpression expression) {
-    TypedValue typedValue = expression.getTypedValue(this);
-    return typedValue!=null ? typedValue.getValue() : null;
-  }
-
-  
   public EngineImpl getEngine() {
     return engine;
   }
@@ -260,5 +291,13 @@ public class ContextImpl implements Context {
   
   public void setExternalContext(SubContext externalContext) {
     this.externalContext = externalContext;
+  }
+  
+  public List<Converter> getConverters() {
+    return converters;
+  }
+  
+  public void setConverters(List<Converter> converters) {
+    this.converters = converters;
   }
 }

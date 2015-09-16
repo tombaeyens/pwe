@@ -1,12 +1,20 @@
 package ch03.engine;
 
+import java.util.List;
+
+import ch03.data.Converter;
+import ch03.engine.context.ConfigurationsContext;
 import ch03.engine.context.SubContext;
+import ch03.engine.context.VariablesContext;
 
 
 /**
  * @author Tom Baeyens
  */
 public class EngineFactoryImpl implements EngineFactory {
+  
+  protected SubContext externalContext = null;
+  protected List<Converter> converters = null;
 
   @Override
   public EngineImpl createEngine() {
@@ -14,12 +22,10 @@ public class EngineFactoryImpl implements EngineFactory {
     ControllerImpl controller = instantiateController();
     ContextImpl context = instantiateContext();
     PersistenceImpl persistence = instantiatePersistence();
-    AsynchronizerImpl asynchronizer = instantiateAsynchronizer();
 
     engine.setController(controller);
     engine.setContext(context);
     engine.setPersistence(persistence);
-    engine.setAsynchronizer(asynchronizer);
     
     controller.setEngine(engine);
     controller.setPersistence(persistence);
@@ -27,7 +33,10 @@ public class EngineFactoryImpl implements EngineFactory {
     
     context.setEngine(engine);
     context.setExternalContext(initializeExternalContext());
-    
+    context.addSubContext(new VariablesContext(engine));
+    context.addSubContext(new ConfigurationsContext(engine));
+    context.setConverters(converters);
+
     return engine;
   }
 
@@ -49,9 +58,5 @@ public class EngineFactoryImpl implements EngineFactory {
 
   protected PersistenceImpl instantiatePersistence() {
     return new PersistenceImpl();
-  }
-
-  protected AsynchronizerImpl instantiateAsynchronizer() {
-    return new AsynchronizerImpl();
   }
 }

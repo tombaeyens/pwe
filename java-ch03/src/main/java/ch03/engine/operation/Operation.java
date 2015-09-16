@@ -29,10 +29,6 @@ public abstract class Operation {
     return scopeInstance;
   }
   
-  public boolean isAsynchronous() {
-    return false;
-  }
-  
   public String toString() {
     return getClass().getSimpleName()+"<"+scopeInstance+">";
   }

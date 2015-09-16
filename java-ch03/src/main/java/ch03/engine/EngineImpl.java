@@ -28,31 +28,28 @@ public class EngineImpl implements Engine {
   public static final Logger log = LoggerFactory.getLogger(EngineImpl.class);
   
   ScopeInstance scopeInstance;
-  boolean isAsync = false;
   LinkedList<Operation> operations = new LinkedList<>();
-  LinkedList<Operation> asyncOperations = new LinkedList<>();
-  List<ExecutionListener> executionListeners;
+  List<ExternalAction> externalActions;
   ContextImpl context = null;
   ControllerImpl controller = null;
   Persistence persistence = null;
-  Asynchronizer asynchronizer = null;
   
   public ContextImpl getContext() {
     return context;
   }
 
   @Override
-  public WorkflowInstance startWorkfowInstanceSynchronous(Workflow workflow) {
-    return startWorkfowInstanceSynchronous(workflow, null, null);
+  public WorkflowInstance startWorkfowInstance(Workflow workflow) {
+    return startWorkfowInstance(workflow, null, null);
   }
 
   @Override
-  public WorkflowInstance startWorkfowInstanceSynchronous(Workflow workflow, Map<String, TypedValue> startData) {
-    return startWorkfowInstanceSynchronous(workflow, startData, null);
+  public WorkflowInstance startWorkfowInstance(Workflow workflow, Map<String, TypedValue> startData) {
+    return startWorkfowInstance(workflow, startData, null);
   }
 
   @Override
-  public WorkflowInstance startWorkfowInstanceSynchronous(Workflow workflow, Map<String, TypedValue> startData, List<Activity> startActivities) {
+  public WorkflowInstance startWorkfowInstance(Workflow workflow, Map<String, TypedValue> startData, List<Activity> startActivities) {
     WorkflowInstance workflowInstance = instantiateWorkflowInstance();
     workflowInstance.setEngine(this);
     workflowInstance.setWorkflow(workflow);
@@ -83,7 +80,7 @@ public class EngineImpl implements Engine {
     if (activityInstances.isEmpty()) {
       controller.endScopeInstance();
     }
-    executeSynchronousOperations();
+    executeOperations();
     return workflowInstance;
   }
 
@@ -96,7 +93,7 @@ public class EngineImpl implements Engine {
     setScopeInstance(activityInstance);
     persistence.workStartHandleMessage(activityInstance, messageData);
     activityInstance.getActivity().handleMessage(activityInstance, context, controller, messageData);
-    executeSynchronousOperations();
+    executeOperations();
     return activityInstance.getWorkflowInstance();
   }
   
@@ -109,90 +106,57 @@ public class EngineImpl implements Engine {
   }
   
   public void addOperation(Operation operation) {
-    if (isAsync || !operation.isAsynchronous()) {
-      operations.add(operation);
-      persistence.operationSynchronousAdded(operation);
-    } else {
-      asyncOperations.add(operation);
-      persistence.operationAsynchronousAdded(operation);
-    }
+    operations.add(operation);
+    persistence.operationSynchronousAdded(operation);
   }
 
   public void executeOperations() {
-    executeSynchronousOperations();
-    executeAsynchronousOperations();
-  }
-
-  public void executeSynchronousOperations() {
     while (!operations.isEmpty()) {
       // At this place the persistence is in a consistent state 
       // to be resumed later if things would crash further down.
       Operation current = operations.getFirst();
       if (current.requiresTransactionSave()) {
-        workSave();
+        persistence.workSave(scopeInstance.getWorkflowInstance(), operations, externalActions);
       }
       operations.removeFirst();
       persistence.operationSynchronousRemoved(current);
       this.scopeInstance = current.getScopeInstance();
       current.perform(this, context, controller);
     }
-  }
 
-  protected void workSave() {
-    persistence.workSave(scopeInstance.getWorkflowInstance(), operations, asyncOperations, executionListeners);
-  }
-
-  @Override
-  public void executeAsynchronousOperations() {
-    if (asyncOperations!=null && !asyncOperations.isEmpty()) {
-      workSave();
-      operations = asyncOperations;
-      asyncOperations = new LinkedList<>();
-      asynchronizer.continueAsynchrous(this);
-    } else {
-      workEnd();
-    }
-  }
-
-  protected void workEnd() {
     WorkflowInstance workflowInstance = scopeInstance.getWorkflowInstance();
 
     // No more work to be done
     // Ensure the persistence is updated so that incoming requests
     // will find the new state
-    persistence.workEnd(workflowInstance, executionListeners);
+    persistence.workEnd(workflowInstance, externalActions);
+    operations = new LinkedList<>();
     
     // Perform all notifications to external services
-    if (executionListeners!=null) {
-      for (ExecutionListener executionListener: executionListeners) {
-        executionListener.executionEnded();
+    ArrayList<ExternalAction> externalActionsCopy = new ArrayList<>(externalActions);
+    externalActions = new ArrayList<>();
+    if (externalActions!=null) {
+      // the next loop could be performed async in parallel...
+      for (int i=0; i<externalActionsCopy.size(); i++) {
+        ExternalAction externalAction = externalActionsCopy.get(i);
+        externalAction.executionEnded(context);
+        persistence.executionListenerRemove(i, externalAction);
       }
     }
-    operations = new LinkedList<>();
-    asyncOperations = new LinkedList<>();
   }
-  
-  /** It's the responsibility of the asynchronizer to call this 
-   * method in a different thread */
-  public void continueAsynchrous() {
-    isAsync = true;
-    executeSynchronousOperations();
-    workEnd();
-  }
-  
+
   /** Resumes a crashed workflow instance after being restored 
    * from persistence. */  
   public void resume() {
-    executeSynchronousOperations();
-    executeAsynchronousOperations();
+    executeOperations();
   }
   
-  public void addExecutionListener(ExecutionListener executionListener) {
-    if (executionListeners==null) {
-      executionListeners = new ArrayList<>();
+  public void addExternalAction(ExternalAction externalAction) {
+    if (externalActions==null) {
+      externalActions = new ArrayList<>();
     }
-    executionListeners.add(executionListener);
-    persistence.executionListenerAdded(executionListener);
+    externalActions.add(externalAction);
+    persistence.executionListenerAdded(externalAction);
   }
 
   /** moves the position of the execution up one level to the parent of the current scopeInstance */
@@ -216,20 +180,8 @@ public class EngineImpl implements Engine {
     return scopeInstance;
   }
 
-  public boolean isAsync() {
-    return isAsync;
-  }
-
   public LinkedList<Operation> getOperations() {
     return operations;
-  }
-
-  public LinkedList<Operation> getAsyncOperations() {
-    return asyncOperations;
-  }
-  
-  public Asynchronizer getAsynchronizer() {
-    return asynchronizer;
   }
 
   public ControllerImpl getController() {
@@ -248,16 +200,8 @@ public class EngineImpl implements Engine {
     this.scopeInstance = scopeInstance;
   }
 
-  public void setAsync(boolean isAsync) {
-    this.isAsync = isAsync;
-  }
-
   public void setOperations(LinkedList<Operation> operations) {
     this.operations = operations;
-  }
-
-  public void setAsyncOperations(LinkedList<Operation> asyncOperations) {
-    this.asyncOperations = asyncOperations;
   }
 
   public void setContext(ContextImpl context) {
@@ -268,15 +212,11 @@ public class EngineImpl implements Engine {
     this.controller = controller;
   }
 
-  public void setAsynchronizer(Asynchronizer asynchronizer) {
-    this.asynchronizer = asynchronizer;
-  }
-  
-  public List<ExecutionListener> getExecutionListeners() {
-    return executionListeners;
+  public List<ExternalAction> getExternalAction() {
+    return externalActions;
   }
 
-  public void setExecutionListeners(List<ExecutionListener> executionListeners) {
-    this.executionListeners = executionListeners;
+  public void setExternalAction(List<ExternalAction> externalActions) {
+    this.externalActions = externalActions;
   }
 }

@@ -34,9 +34,7 @@ public class Workflow extends Scope {
 
   public WorkflowInstance start(Map<String, TypedValue> startData, List<Activity> startActivities) {
     Engine engine = getEngineFactory().createEngine();
-    WorkflowInstance workflowInstance = engine.startWorkfowInstanceSynchronous(this, startData, startActivities);
-    engine.executeAsynchronousOperations();
-    return workflowInstance;
+    return engine.startWorkfowInstance(this, startData, startActivities);
   }
   
   public List<Activity> getStartActivities() {

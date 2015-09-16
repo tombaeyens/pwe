@@ -14,15 +14,13 @@ import ch03.model.WorkflowInstance;
  */
 public interface Engine {
 
-  WorkflowInstance startWorkfowInstanceSynchronous(Workflow workflow);
+  WorkflowInstance startWorkfowInstance(Workflow workflow);
 
-  WorkflowInstance startWorkfowInstanceSynchronous(Workflow workflow, Map<String, TypedValue> startData);
+  WorkflowInstance startWorkfowInstance(Workflow workflow, Map<String, TypedValue> startData);
 
-  WorkflowInstance startWorkfowInstanceSynchronous(Workflow workflow, Map<String, TypedValue> startData, List<Activity> startActivities);
+  WorkflowInstance startWorkfowInstance(Workflow workflow, Map<String, TypedValue> startData, List<Activity> startActivities);
 
   WorkflowInstance handleActivityInstanceMessage(ActivityInstance activityInstance);
   
   WorkflowInstance handleActivityInstanceMessage(ActivityInstance activityInstance, Map<String,TypedValue> messageData);
-
-  void executeAsynchronousOperations();
 }

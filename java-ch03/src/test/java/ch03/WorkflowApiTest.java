@@ -28,7 +28,7 @@ public class WorkflowApiTest {
   }
 
   @Test 
-  public void testSimpleSynchronousApi() {
+  public void testSimpleApi() {
     Workflow workflow = new Workflow();
     workflow.add("a", new TestActivity());
 
@@ -36,22 +36,20 @@ public class WorkflowApiTest {
 
     workflowInstance
       .findActivityInstanceByActivityIdRecursive("a")
-      .handleMessage();
+      .message();
     
     assertTrue(workflowInstance.isEnded());
   }
   
   @Test
-  public void testAsynchronousWorkflowApi() {
+  public void testCustomEngineFactory() {
     EngineFactory engineFactory = new EngineFactoryImpl();
 
     Workflow workflow = new Workflow();
     workflow.add("a", new TestActivity());
 
     Engine engine = engineFactory.createEngine();
-
-    WorkflowInstance workflowInstance = engine.startWorkfowInstanceSynchronous(workflow);
-    engine.executeAsynchronousOperations();
+    WorkflowInstance workflowInstance = engine.startWorkfowInstance(workflow);
     
     ActivityInstance activityInstance = workflowInstance
       .findActivityInstanceByActivityIdRecursive("a");
@@ -60,5 +58,4 @@ public class WorkflowApiTest {
     
     assertTrue(workflowInstance.isEnded());
   }
-
 }

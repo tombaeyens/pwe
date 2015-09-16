@@ -1,4 +1,4 @@
-package ch03.concurrency.infrastructure;
+package ch03.activityworker;
 
 import java.util.Map;
 
@@ -9,13 +9,11 @@ import ch03.model.Activity;
 import ch03.model.ActivityInstance;
 
 
-/** external activity (wait state) 
- * @author Tom Baeyens
- */
-public class ExternalSync extends Activity {
-
+public class ActivityWorkerActivity extends Activity {
+  
   @Override
   public void start(ActivityInstance activityInstance, Context context, Controller controller) {
+    controller.addExternalAction(new ActivityWorkerNotification(activityInstance));
     controller.waitForExternalMessage();
 
     // External continuation has an engine defined reference
@@ -31,8 +29,8 @@ public class ExternalSync extends Activity {
 
   @Override
   public void handleMessage(ActivityInstance activityInstance, Context context, Controller controller, Map<String, TypedValue> messageData) {
-    // external message received
-    
+    // same impl as the super class, but for clarity we include it here as well
+    context.writeOutputs(messageData);
     controller.onwards();
   }
 }

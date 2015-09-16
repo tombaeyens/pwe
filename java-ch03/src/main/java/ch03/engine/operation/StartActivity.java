@@ -28,11 +28,6 @@ public class StartActivity extends Operation {
     activity.start(activityInstance, engine.getContext(), engine.getController());
   }
 
-  @Override
-  public boolean isAsynchronous() {
-    return activityInstance.getActivity().isAsynchronous();
-  }
-  
   public boolean requiresTransactionSave() {
     return true;
   }

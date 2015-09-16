@@ -119,7 +119,7 @@ public class PersistenceImpl implements Persistence {
   }
 
   @Override
-  public void workSave(WorkflowInstance workflowInstance, List<Operation> operations, List<Operation> asyncOperations, List<ExecutionListener> executionListeners) {
+  public void workSave(WorkflowInstance workflowInstance, List<Operation> operations, List<ExternalAction> externalActions) {
     log.debug(" | Work savepoint for "+workflowInstance.getId());
     logUpdates();
   }
@@ -132,13 +132,18 @@ public class PersistenceImpl implements Persistence {
   }
 
   @Override
-  public void workEnd(WorkflowInstance workflowInstance, List<ExecutionListener> executionListeners) {
+  public void workEnd(WorkflowInstance workflowInstance, List<ExternalAction> externalActions) {
     log.debug(" | Work ends for "+workflowInstance.getId());
     logUpdates();
   }
 
   @Override
-  public void executionListenerAdded(ExecutionListener executionListener) {
-    addUpdate("Add execution listener "+executionListener);
+  public void executionListenerAdded(ExternalAction externalAction) {
+    addUpdate("Add execution listener "+externalAction);
+  }
+
+  @Override
+  public void executionListenerRemove(int executionListenerIndex, ExternalAction externalAction) {
+    addUpdate("Remove execution listener "+executionListenerIndex+" ("+externalAction+")");
   }
 }

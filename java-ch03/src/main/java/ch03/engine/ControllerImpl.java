@@ -135,8 +135,8 @@ public class ControllerImpl implements Controller {
    * before the current state is persisted.
    */
   @Override
-  public void addExecutionListener(ExecutionListener executionListener) {
-    engine.addExecutionListener(executionListener);
+  public void addExternalAction(ExternalAction externalAction) {
+    engine.addExternalAction(externalAction);
   }
 
   /** puts the current execution flow on hold in the current activity instance till 

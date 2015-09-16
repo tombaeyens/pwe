@@ -21,7 +21,11 @@ public interface Controller {
   /** starts an activity instance for the given activity nested in the given parentScopeInstance */
   ActivityInstance startActivityInstance(Activity activity, ScopeInstance parentScopeInstance);
 
-  void addExecutionListener(ExecutionListener executionListener);
+  /** action performed after the current execution flow has ended.
+   * This is the best way to attach notifications that continue the flow.  Cause if you 
+   * perform those notifications inside the activity, then potetentially the message to 
+   * continue will arrive before the state is persisted. */
+  void addExternalAction(ExternalAction externalAction);
   
   void waitForExternalMessage();
   

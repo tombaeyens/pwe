@@ -51,14 +51,14 @@ public interface Persistence {
 
   void operationAsynchronousAdded(Operation operation);
 
-  void executionListenerAdded(ExecutionListener executionListener);
+  void executionListenerAdded(ExternalAction externalAction);
 
   /** called before an activity instance is started and 
    * when the updates and operations given are in a consistent state to 
    * be saved for the purpose of recovery. 
    * The transaction will keep on executing afterwards till {@link #transactionEnd(WorkflowInstance)}
    * is called. */
-  void workSave(WorkflowInstance workflowInstance, List<Operation> operations, List<Operation> asyncOperations, List<ExecutionListener> executionListeners);
+  void workSave(WorkflowInstance workflowInstance, List<Operation> operations, List<ExternalAction> externalActions);
 
   /** No more work will be done by the engine for this workflow instance.
    * After this, the workflow instance is either ended or it will
@@ -67,6 +67,8 @@ public interface Persistence {
    * instance could execute further. 
    * This is a good moment to update or overwrite the entire 
    * workflow instance data structure 
-   * @param executionListeners */
-  void workEnd(WorkflowInstance workflowInstance, List<ExecutionListener> executionListeners);
+   * @param externalActions */
+  void workEnd(WorkflowInstance workflowInstance, List<ExternalAction> externalActions);
+
+  void executionListenerRemove(int executionListenerIndex, ExternalAction externalAction);
 }

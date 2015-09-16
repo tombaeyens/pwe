@@ -7,6 +7,7 @@ import java.util.Map;
 
 import ch03.data.InputExpression;
 import ch03.data.OutputExpression;
+import ch03.data.Type;
 import ch03.data.TypedValue;
 import ch03.engine.ContextImpl;
 import ch03.engine.ControllerImpl;
@@ -50,7 +51,6 @@ public abstract class Scope {
   public abstract boolean isActivity();
   public abstract boolean isWorkflow();
 
-  
   public String getId() {
     return id;
   }
