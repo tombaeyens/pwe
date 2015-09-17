@@ -28,7 +28,7 @@ public class ActivityWorkerActivity extends Activity {
   }
 
   @Override
-  public void handleMessage(ActivityInstance activityInstance, Context context, Controller controller, Map<String, TypedValue> messageData) {
+  public void message(ActivityInstance activityInstance, Context context, Controller controller, Map<String, TypedValue> messageData) {
     // same impl as the super class, but for clarity we include it here as well
     context.writeOutputs(messageData);
     controller.onwards();

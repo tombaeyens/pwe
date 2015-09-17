@@ -16,10 +16,10 @@ public class VariableInstance {
   
   public String toString() {
     return variable!=null 
-        ? "${"+variable.getId()+"|"+variable.getType()+"|"+id+"}"
+        ? "${"+variable.getId()+"|"+variable.getType()+"|"+id+"|"+typedValue+"}"
         : typedValue!=null 
-             ? "${"+typedValue.getType()+"|"+id+"}"
-             : "${"+id+"}";
+             ? "${"+typedValue.getType()+"|"+id+"|"+typedValue+"}"
+             : "${"+id+"|"+typedValue+"}";
   }
   
   public Type getType() {

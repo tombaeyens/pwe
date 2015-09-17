@@ -46,15 +46,26 @@ public class WorkflowApiTest {
     EngineFactory engineFactory = new EngineFactoryImpl();
 
     Workflow workflow = new Workflow();
+    // Simplest way to set the engine factory is to set it in 
+    // the worklfow.  There it will be found by Workflow.start
+    // and ActivityInstance.message
+    workflow.setEngineFactory(engineFactory);
     workflow.add("a", new TestActivity());
 
+    workflow.start();
+    
+    // Another alternative is to create your own engine and 
+    // then start the workflow instance on the engine itself.
+    // This can be handy if you want to configure the engine
     Engine engine = engineFactory.createEngine();
     WorkflowInstance workflowInstance = engine.startWorkfowInstance(workflow);
     
     ActivityInstance activityInstance = workflowInstance
       .findActivityInstanceByActivityIdRecursive("a");
 
-    engine.handleActivityInstanceMessage(activityInstance);
+    // The downside of using the engine is that you have to 
+    // use it everywhere you interact.
+    engine.message(activityInstance);
     
     assertTrue(workflowInstance.isEnded());
   }

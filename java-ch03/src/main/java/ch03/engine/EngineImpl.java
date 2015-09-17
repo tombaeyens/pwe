@@ -60,15 +60,16 @@ public class EngineImpl implements Engine {
     setScopeInstance(workflowInstance);
     enterScope();
     // applying the start data
-    if (startData!=null && !startData.isEmpty() && workflow.getInputParameters()!=null) {
-      MapContext startDataContext = new MapContext("startData", startData);
-      // adding the start data subcontext after the subcontext context
-      context.addSubContext(0, startDataContext);
-      Map<String, TypedValue> inputs = context.readInputs();
-      context.removeSubContext(startDataContext);
-      for (String inputKey: inputs.keySet()) {
-        TypedValue inputValue = inputs.get(inputKey);
-        context.setVariableInstanceValue(inputKey, inputValue);
+    if (startData!=null && !startData.isEmpty()) {
+      if (workflow.getInputParameters()!=null) {
+        MapContext startDataContext = new MapContext("startData", startData);
+        // adding the start data subcontext after the subcontext context
+        context.addSubContext(0, startDataContext);
+        Map<String, TypedValue> inputs = context.readInputs();
+        context.removeSubContext(startDataContext);
+        context.setVariableInstances(inputs);
+      } else {
+        context.setVariableInstances(startData);
       }
     }
     // if there are no client specified start activities...
@@ -84,15 +85,15 @@ public class EngineImpl implements Engine {
     return workflowInstance;
   }
 
-  public WorkflowInstance handleActivityInstanceMessage(ActivityInstance activityInstance) {
-    return handleActivityInstanceMessage(activityInstance, null);
+  public WorkflowInstance message(ActivityInstance activityInstance) {
+    return message(activityInstance, null);
   }
 
-  public WorkflowInstance handleActivityInstanceMessage(ActivityInstance activityInstance, Map<String,TypedValue> messageData) {
+  public WorkflowInstance message(ActivityInstance activityInstance, Map<String,TypedValue> messageData) {
     activityInstance.getWorkflowInstance().setEngine(this);
     setScopeInstance(activityInstance);
     persistence.workStartHandleMessage(activityInstance, messageData);
-    activityInstance.getActivity().handleMessage(activityInstance, context, controller, messageData);
+    activityInstance.getActivity().message(activityInstance, context, controller, messageData);
     executeOperations();
     return activityInstance.getWorkflowInstance();
   }
@@ -132,15 +133,17 @@ public class EngineImpl implements Engine {
     persistence.workEnd(workflowInstance, externalActions);
     operations = new LinkedList<>();
     
-    // Perform all notifications to external services
-    ArrayList<ExternalAction> externalActionsCopy = new ArrayList<>(externalActions);
-    externalActions = new ArrayList<>();
     if (externalActions!=null) {
-      // the next loop could be performed async in parallel...
-      for (int i=0; i<externalActionsCopy.size(); i++) {
-        ExternalAction externalAction = externalActionsCopy.get(i);
-        externalAction.executionEnded(context);
-        persistence.executionListenerRemove(i, externalAction);
+      // Perform all notifications to external services
+      ArrayList<ExternalAction> externalActionsCopy = new ArrayList<>(externalActions);
+      externalActions = null;
+      if (externalActions != null) {
+        // the next loop could be performed async in parallel...
+        for (int i = 0; i < externalActionsCopy.size(); i++) {
+          ExternalAction externalAction = externalActionsCopy.get(i);
+          externalAction.executionEnded(context);
+          persistence.executionListenerRemove(i, externalAction);
+        }
       }
     }
   }

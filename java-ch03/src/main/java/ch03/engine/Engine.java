@@ -20,7 +20,7 @@ public interface Engine {
 
   WorkflowInstance startWorkfowInstance(Workflow workflow, Map<String, TypedValue> startData, List<Activity> startActivities);
 
-  WorkflowInstance handleActivityInstanceMessage(ActivityInstance activityInstance);
+  WorkflowInstance message(ActivityInstance activityInstance);
   
-  WorkflowInstance handleActivityInstanceMessage(ActivityInstance activityInstance, Map<String,TypedValue> messageData);
+  WorkflowInstance message(ActivityInstance activityInstance, Map<String,TypedValue> messageData);
 }

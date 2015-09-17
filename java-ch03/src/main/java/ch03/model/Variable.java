@@ -26,12 +26,22 @@ public class Variable {
     this.id = id;
   }
   
+  public Variable id(String id) {
+    this.id = id;
+    return this;
+  }
+  
   public Type getType() {
     return type;
   }
   
   public void setType(Type type) {
     this.type = type;
+  }
+  
+  public Variable type(Type type) {
+    this.type = type;
+    return this;
   }
   
   public Object getInitialValue() {
@@ -41,12 +51,22 @@ public class Variable {
   public void setInitialValue(Object initialValue) {
     this.initialValue = initialValue;
   }
-  
+
+  public Variable initialValue(Object initialValue) {
+    this.initialValue = initialValue;
+    return this;
+  }
+
   public InputExpression getInitialValueExpression() {
     return initialValueExpression;
   }
   
   public void setInitialValueExpression(InputExpression initialValueExpression) {
     this.initialValueExpression = initialValueExpression;
+  }
+
+  public Variable initialValueExpression(InputExpression initialValueExpression) {
+    this.initialValueExpression = initialValueExpression;
+    return this;
   }
 }

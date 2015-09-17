@@ -2,6 +2,7 @@ package ch03.engine.context;
 
 import ch03.data.TypedValue;
 import ch03.engine.EngineImpl;
+import ch03.model.VariableInstance;
 
 
 /**
@@ -17,7 +18,8 @@ public class VariablesContext implements SubContext {
 
   @Override
   public TypedValue get(String key) {
-    return null;
+    VariableInstance variableInstance = engine.getScopeInstance().findVariableInstanceByVariableIdRecursive(key);
+    return variableInstance!=null ? variableInstance.getTypedValue() : null;
   }
 
   @Override

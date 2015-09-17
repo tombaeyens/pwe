@@ -13,6 +13,7 @@ end up as a series of blog posts or a book.
     * https://en.wikipedia.org/wiki/Business_Process_Model_and_Notation
     * https://en.wikipedia.org/wiki/Flowchart
     * https://en.wikipedia.org/wiki/Petri_net
+    * https://en.wikipedia.org/wiki/Finite-state_machine
   * What's it used for
     * Business process management
     * Rapid prototyping
@@ -61,6 +62,14 @@ This section should describe the basics in similar style to the concepts section
   * Advanced workflow concepts
     * Workflow templates  
     * Listeners
+
+TODO: * Triggers
+  - take external data
+  - start the execution flow
+  - TODO link to activities (like BPMN start events) yet to be determined
+  - one or more triggers per workflow
+  - only one can be used to start one workflow instance
+  - worklfow can have a default trigger 
   
 # Control flow
 

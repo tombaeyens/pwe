@@ -8,7 +8,9 @@ import ch03.data.InputExpression;
 import ch03.data.Type;
 import ch03.data.TypedValue;
 import ch03.engine.context.SubContext;
+import ch03.model.ScopeInstance;
 import ch03.model.Transition;
+import ch03.model.VariableInstance;
 
 /**
  * @author Tom Baeyens
@@ -32,4 +34,12 @@ public interface Context {
 
   boolean isConditionMet(Condition condition);
   List<Transition> getOutgoingTransitionsMeetingCondition();
+
+  void setVariableInstance(VariableInstance variableInstance, TypedValue newValue);
+  void setVariableInstance(String variableId, TypedValue typedValue);
+  void setVariableInstances(Map<String, TypedValue> typedValues);
+  
+  VariableInstance createVariableInstance(String variableId, TypedValue typedValue);
+  VariableInstance createVariableInstanceInWorkflowInstance(String variableId, TypedValue typedValue);
+  VariableInstance createVariableInstance(String variableId, TypedValue typedValue, ScopeInstance scopeInstance);
 }

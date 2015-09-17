@@ -32,7 +32,7 @@ public class EngineFactoryImpl implements EngineFactory {
     controller.setContext(context);
     
     context.setEngine(engine);
-    context.setExternalContext(initializeExternalContext());
+    context.setExternalContext(externalContext);
     context.addSubContext(new VariablesContext(engine));
     context.addSubContext(new ConfigurationsContext(engine));
     context.setConverters(converters);
@@ -42,10 +42,6 @@ public class EngineFactoryImpl implements EngineFactory {
 
   protected EngineImpl instantiateEngine() {
     return new EngineImpl();
-  }
-
-  protected SubContext initializeExternalContext() {
-    return null;
   }
 
   protected ControllerImpl instantiateController() {
@@ -58,5 +54,25 @@ public class EngineFactoryImpl implements EngineFactory {
 
   protected PersistenceImpl instantiatePersistence() {
     return new PersistenceImpl();
+  }
+
+  
+  public SubContext getExternalContext() {
+    return externalContext;
+  }
+
+  
+  public void setExternalContext(SubContext externalContext) {
+    this.externalContext = externalContext;
+  }
+
+  
+  public List<Converter> getConverters() {
+    return converters;
+  }
+
+  
+  public void setConverters(List<Converter> converters) {
+    this.converters = converters;
   }
 }

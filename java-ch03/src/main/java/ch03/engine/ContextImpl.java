@@ -109,33 +109,6 @@ public class ContextImpl implements Context {
     return (T) shoehorn(typedValue, type);
   }
 
-  /** tries to convert the given typedValue to type */
-  protected <T> T shoehorn(TypedValue typedValue, Type type) {
-    Object value = typedValue!=null ? typedValue.getValue() : null;
-    if (value==null) {
-      return null;
-    }
-    Type sourceType = typedValue.getType();
-    if (type!=null && !type.equals(sourceType)) {
-      Converter converter = findConverter(typedValue, type);
-      if (converter!=null) {
-        value = converter.convert(value);
-      }
-    }
-    return (T) value;
-  }
-
-  protected Converter findConverter(TypedValue typedValue, Type type) {
-    if (converters!=null) {
-      for (Converter converter: converters) {
-        if (converter.matches(typedValue, type)) {
-          return converter;
-        }
-      }
-    }
-    return null;
-  }
-
   @Override
   public void setTypedValue(String key, TypedValue value) {
     throw new RuntimeException("Not implemented yet");
@@ -164,6 +137,7 @@ public class ContextImpl implements Context {
     return outgoingTransitionsMeetingCondition;
   }
   
+  @Override
   public Map<String,TypedValue> readInputs() {
     Map<String,TypedValue> inputs = new LinkedHashMap<>();
     Map<String,InputExpression> inputParameters = engine.getScopeInstance().getScope().getInputParameters();
@@ -175,6 +149,7 @@ public class ContextImpl implements Context {
     return inputs;
   }
 
+  @Override
   public void writeOutputs(Map<String,TypedValue> outputs) {
     ScopeInstance scopeInstance = engine.getScopeInstance();
     Map<String,OutputExpression> outputParameters = scopeInstance.getScope().getOutputParameters();
@@ -185,32 +160,78 @@ public class ContextImpl implements Context {
         outputExpression.setTypedValue(this, typedValue);
       } else {
         VariableInstance variableInstance = scopeInstance.findVariableInstanceByVariableIdRecursive(key);
-        setVariableInstanceValue(variableInstance, typedValue);
+        setVariableInstance(variableInstance, typedValue);
       }
     }
   }
-  
-  public void initializeVariables() {
-    ScopeInstance scopeInstance = engine.getScopeInstance();
-    Map<String,Variable> variables = scopeInstance.getScope().getVariables();
-    for (String key: variables.keySet()) {
-      Variable variable = variables.get(key);
-      TypedValue initialValue = null;
-      if (variable.getInitialValue()!=null) {
-        initialValue = new TypedValue(variable.getType(), variable.getInitialValue());
-      } else if (variable.getInitialValueExpression()!=null) {
-        initialValue = getTypedValue(variable.getInitialValueExpression()); 
-      }
-      createVariableInstance(scopeInstance, variable, variable.getId(), initialValue);
+
+  @Override
+  public void setVariableInstances(Map<String, TypedValue> typedValues) {
+    for (String inputKey: typedValues.keySet()) {
+      TypedValue inputValue = typedValues.get(inputKey);
+      setVariableInstance(inputKey, inputValue);
     }
   }
 
   /** creates a variable instance in the current scope */
+  @Override
   public VariableInstance createVariableInstance(String variableId, TypedValue typedValue) {
     return createVariableInstance(engine.getScopeInstance(), null, variableId, typedValue);
   }
+  
+  @Override
+  public VariableInstance createVariableInstanceInWorkflowInstance(String variableId, TypedValue typedValue) {
+    WorkflowInstance workflowInstance = engine.getScopeInstance().getWorkflowInstance();
+    return createVariableInstance(workflowInstance, null, variableId, typedValue);
+  }
 
-  public VariableInstance createVariableInstance(ScopeInstance scopeInstance, Variable variable, String variableId, TypedValue initialValue) {
+  @Override
+  public VariableInstance createVariableInstance(String variableId, TypedValue typedValue, ScopeInstance scopeInstance) {
+    return createVariableInstance(scopeInstance, null, variableId, typedValue);
+  }
+
+  @Override
+  public void setVariableInstance(String variableId, TypedValue typedValue) {
+    ScopeInstance scopeInstance = engine.getScopeInstance();
+    VariableInstance variableInstance = scopeInstance.findVariableInstanceByVariableIdRecursive(variableId);
+    if (variableInstance==null) {
+      variableInstance = createVariableInstanceInWorkflowInstance(variableId, typedValue);
+    } else {
+      setVariableInstance(variableInstance, typedValue);
+    }
+  }
+
+  @Override
+  public void setVariableInstance(VariableInstance variableInstance, TypedValue newValue) {
+    TypedValue oldValue = variableInstance.getTypedValue();
+    variableInstance.setTypedValue(newValue);
+    Variable variable = variableInstance.getVariable();
+    if (variable!=null) {
+      log.debug("Set variable value [%s|%s] = %s", variable.getId(), variableInstance.getId(), newValue);
+    } else {
+      log.debug("Set variable value [%s] = %s", variableInstance.getId(), newValue);
+    }
+    engine.getPersistence().variableInstanceValueUpdated(variableInstance, oldValue);
+  }
+  
+  protected void initializeVariables() {
+    ScopeInstance scopeInstance = engine.getScopeInstance();
+    Map<String,Variable> variables = scopeInstance.getScope().getVariables();
+    if (variables!=null) {
+      for (String key : variables.keySet()) {
+        Variable variable = variables.get(key);
+        TypedValue initialValue = null;
+        if (variable.getInitialValue() != null) {
+          initialValue = new TypedValue(variable.getType(), variable.getInitialValue());
+        } else if (variable.getInitialValueExpression() != null) {
+          initialValue = getTypedValue(variable.getInitialValueExpression());
+        }
+        createVariableInstance(scopeInstance, variable, variable.getId(), initialValue);
+      }
+    }
+  }
+
+  protected VariableInstance createVariableInstance(ScopeInstance scopeInstance, Variable variable, String variableId, TypedValue initialValue) {
     VariableInstance variableInstance = engine.instantiateVariableInstance();
     variableInstance.setVariable(variable);
     variableInstance.setScopeInstance(scopeInstance);
@@ -225,34 +246,32 @@ public class ContextImpl implements Context {
     return variableInstance;
   }
 
-
-  public void setVariableInstanceValue(String variableId, TypedValue typedValue) {
-    ScopeInstance scopeInstance = engine.getScopeInstance();
-    VariableInstance variableInstance = scopeInstance.findVariableInstanceByVariableIdRecursive(variableId);
-    if (variableInstance==null) {
-      variableInstance = createVariableInstanceDynamic(variableId, typedValue);
-    } else {
-      setVariableInstanceValue(variableInstance, typedValue);
+  /** tries to convert the given typedValue to type */
+  protected <T> T shoehorn(TypedValue typedValue, Type type) {
+    Object value = typedValue!=null ? typedValue.getValue() : null;
+    if (value==null) {
+      return null;
     }
-  }
-
-  protected VariableInstance createVariableInstanceDynamic(String variableId, TypedValue typedValue) {
-    WorkflowInstance workflowInstance = engine.getScopeInstance().getWorkflowInstance();
-    return createVariableInstance(workflowInstance, null, variableId, typedValue);
-  }
-
-  protected void setVariableInstanceValue(VariableInstance variableInstance, TypedValue newValue) {
-    TypedValue oldValue = variableInstance.getTypedValue();
-    variableInstance.setTypedValue(newValue);
-    Variable variable = variableInstance.getVariable();
-    if (variable!=null) {
-      log.debug("Set variable value [%s|%s] = %s", variable.getId(), variableInstance.getId(), newValue);
-    } else {
-      log.debug("Set variable value [%s] = %s", variableInstance.getId(), newValue);
+    Type sourceType = typedValue.getType();
+    if (type!=null && !type.equals(sourceType)) {
+      Converter converter = findConverter(typedValue, type);
+      if (converter!=null) {
+        value = converter.convert(value);
+      }
     }
-    engine.getPersistence().variableInstanceValueUpdated(variableInstance, oldValue);
+    return (T) value;
   }
-  
+
+  protected Converter findConverter(TypedValue typedValue, Type type) {
+    if (converters!=null) {
+      for (Converter converter: converters) {
+        if (converter.matches(typedValue, type)) {
+          return converter;
+        }
+      }
+    }
+    return null;
+  }
 
   public EngineImpl getEngine() {
     return engine;

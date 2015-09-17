@@ -1,4 +1,4 @@
-package ch03.service;
+package ch03.taskservice;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,5 +30,11 @@ public class Task {
   
   public void addTaskListener(TaskListener taskListener) {
     taskListeners.add(taskListener);
+  }
+
+  public void complete() {
+    for (TaskListener taskListener: taskListeners) {
+      taskListener.taskCompleted(this);
+    }
   }
 }

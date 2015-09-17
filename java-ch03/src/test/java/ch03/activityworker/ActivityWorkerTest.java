@@ -2,10 +2,14 @@ package ch03.activityworker;
 
 import static org.junit.Assert.*;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.junit.Test;
 
+import ch03.data.TypedValue;
+import ch03.engine.EngineFactoryImpl;
+import ch03.engine.context.MapContext;
 import ch03.model.Workflow;
 import ch03.model.WorkflowInstance;
 
@@ -17,10 +21,15 @@ public class ActivityWorkerTest {
   
   @Test
   public void test() {
-    ActivityWorkerEngineFactory activityWorkerEngineFactory = new ActivityWorkerEngineFactory();
+    ActivityWorker activityWorker = new ActivityWorker();
+    MapContext externalContext = new MapContext("external", new HashMap<String,TypedValue>());
+    externalContext.put(activityWorker);
+    
+    EngineFactoryImpl engineFactory = new EngineFactoryImpl();
+    engineFactory.setExternalContext(externalContext);
 
     Workflow workflow = new Workflow();
-    workflow.setEngineFactory(activityWorkerEngineFactory);
+    workflow.setEngineFactory(engineFactory);
     workflow.add("external", new ActivityWorkerActivity());
 
     WorkflowInstance workflowInstance = workflow.start();
@@ -35,7 +44,7 @@ public class ActivityWorkerTest {
 
     assertTrue(workflowInstance.isEnded());
     
-    List<String> logs = activityWorkerEngineFactory.getLogs();
+    List<String> logs = activityWorker.getWorkDone();
     assertEquals(logs.toString(), 1, logs.size());
   }
 }

@@ -19,7 +19,7 @@ public class ActivityInstance extends ScopeInstance {
   
   public WorkflowInstance message(Map<String,TypedValue> messageData) {
     Engine engine = getWorkflowInstance().getEngine();
-    return engine.handleActivityInstanceMessage(this, messageData);
+    return engine.message(this, messageData);
   }
   
   @Override

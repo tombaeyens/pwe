@@ -1,7 +1,9 @@
-package ch03.service;
+package ch03.taskservice;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import ch03.engine.context.MapContext;
 
 
 /**
@@ -13,5 +15,9 @@ public class TaskService {
 
   public void createTask(Task task) {
     tasks.add(task);
+  }
+
+  public List<Task> getTasks() {
+    return tasks;
   }
 }

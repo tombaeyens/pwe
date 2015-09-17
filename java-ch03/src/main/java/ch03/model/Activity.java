@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Map;
 
 import ch03.data.Condition;
-import ch03.data.Type;
+import ch03.data.InputExpression;
+import ch03.data.OutputExpression;
 import ch03.data.TypedValue;
 import ch03.engine.Context;
 import ch03.engine.Controller;
+import ch03.engine.ScopeListener;
 
 /**
  * @author Tom Baeyens
@@ -36,7 +38,7 @@ public class Activity extends Scope {
     onwards(activityInstance, context, controller);
   }
 
-  public void handleMessage(ActivityInstance activityInstance, Context context, Controller controller, Map<String,TypedValue> messageData) {
+  public void message(ActivityInstance activityInstance, Context context, Controller controller, Map<String,TypedValue> messageData) {
     context.writeOutputs(messageData);
     onwards(activityInstance, context, controller);
   }
@@ -63,12 +65,53 @@ public class Activity extends Scope {
   public boolean isWorkflow() {
     return false;
   }
+  
+  @Override
+  public Activity configurationValue(String key, Object value) {
+    super.configurationValue(key, value);
+    return this;
+  }
+
+  @Override
+  public Activity configurationTypedValue(String key, TypedValue typedValue) {
+    super.configurationTypedValue(key, typedValue);
+    return this;
+  }
+  
+  @Override
+  public Activity inputParameter(String key, InputExpression inputExpression) {
+    super.inputParameter(key, inputExpression);
+    return this;
+  }
+
+  @Override
+  public Activity outputParameter(String key, OutputExpression outputExpression) {
+    super.outputParameter(key, outputExpression);
+    return this;
+  }
+
+  @Override
+  public Activity activity(Activity activity) {
+    super.activity(activity);
+    return this;
+  }
+
+  @Override
+  public Activity variable(Variable variable) {
+    super.variable(variable);
+    return this;
+  }
+
+  @Override
+  public Activity scopeListener(ScopeListener scopeListener) {
+    super.scopeListener(scopeListener);
+    return this;
+  }
 
   public Condition getCondition() {
     return condition;
   }
 
-  
   public void setCondition(Condition condition) {
     this.condition = condition;
   }

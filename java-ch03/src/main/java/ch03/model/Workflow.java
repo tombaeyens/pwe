@@ -1,15 +1,17 @@
 package ch03.model;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import ch03.data.InputExpression;
+import ch03.data.OutputExpression;
 import ch03.data.TypedValue;
 import ch03.engine.Context;
 import ch03.engine.Controller;
 import ch03.engine.Engine;
 import ch03.engine.EngineFactory;
 import ch03.engine.EngineFactoryImpl;
+import ch03.engine.ScopeListener;
 
 
 /**
@@ -39,23 +41,16 @@ public class Workflow extends Scope {
   
   public List<Activity> getStartActivities() {
     if (this.startActivities==null) {
-      // I recall reading that this kind of initialization synchronization is not 100% threadsafe.
-      // I don't recall what the proper solution was
-      // But I think it will be sufficient
       synchronized (this) {
-        List<Activity> startActivities = new ArrayList<>();
-        for (Activity activity : activities.values()) {
-          if (activity.incomingTransitions.isEmpty()) {
-            startActivities.add(activity);
-          }
-        }
-        this.startActivities = startActivities;
+        this.startActivities = getActivitiesWithoutIncomingTransitions();
       }
     }
     return startActivities;
   }
 
   public void onwards(WorkflowInstance workflowInstance, Context context, Controller controller) {
+    // TODO if there is one, continue super activity instance for 
+    // which this workflow instance is is a sub worklflow instance
   }
 
   public String toString() {
@@ -103,5 +98,47 @@ public class Workflow extends Scope {
    * and starting the start activities. */
   public boolean isStartSaved() {
     return false;
+  }
+  
+  @Override
+  public Workflow configurationValue(String key, Object value) {
+    super.configurationValue(key, value);
+    return this;
+  }
+
+  @Override
+  public Workflow configurationTypedValue(String key, TypedValue typedValue) {
+    super.configurationTypedValue(key, typedValue);
+    return this;
+  }
+  
+  @Override
+  public Workflow inputParameter(String key, InputExpression inputExpression) {
+    super.inputParameter(key, inputExpression);
+    return this;
+  }
+
+  @Override
+  public Workflow outputParameter(String key, OutputExpression outputExpression) {
+    super.outputParameter(key, outputExpression);
+    return this;
+  }
+
+  @Override
+  public Workflow activity(Activity activity) {
+    super.activity(activity);
+    return this;
+  }
+
+  @Override
+  public Workflow variable(Variable variable) {
+    super.variable(variable);
+    return this;
+  }
+
+  @Override
+  public Workflow scopeListener(ScopeListener scopeListener) {
+    super.scopeListener(scopeListener);
+    return this;
   }
 }

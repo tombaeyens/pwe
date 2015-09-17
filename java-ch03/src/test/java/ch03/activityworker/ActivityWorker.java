@@ -33,4 +33,8 @@ public class ActivityWorker {
     workDone.add("Worked activity "+activityInstance.getId());
     activityInstance.message();
   }
+  
+  public List<String> getWorkDone() {
+    return workDone;
+  }
 }

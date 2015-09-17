@@ -17,7 +17,7 @@ public class ConfigurationsContext implements SubContext {
 
   @Override
   public TypedValue get(String key) {
-    return null;
+    return engine.getScopeInstance().getScope().getConfiguration().get(key);
   }
 
   @Override
