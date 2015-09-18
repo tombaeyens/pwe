@@ -5,6 +5,8 @@ import java.util.List;
 import ch03.model.Activity;
 import ch03.model.ActivityInstance;
 import ch03.model.ScopeInstance;
+import ch03.model.Timer;
+import ch03.model.TimerInstance;
 import ch03.model.Transition;
 
 /**
@@ -36,4 +38,8 @@ public interface Controller {
   void onwards();
 
   void notifyParentFlowEnded();
+
+  TimerInstance createTimer(ScopeInstance scopeInstance, Timer timer);
+
+  TimerInstance createTimerInScope(ScopeInstance scopeInstance, Timer timer);
 }

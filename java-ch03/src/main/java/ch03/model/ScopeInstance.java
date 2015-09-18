@@ -1,7 +1,6 @@
 package ch03.model;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,9 +16,9 @@ public abstract class ScopeInstance {
   protected String id;
   protected Scope scope;
   protected ScopeInstance parent;
-  protected List<ActivityInstance> activityInstances = new ArrayList<>();
+  protected List<ActivityInstance> activityInstances;
   /** variable instances by variable.id (not by variableInstance.id) */
-  protected Map<String,VariableInstance> variableInstances = new LinkedHashMap<>();
+  protected Map<String,VariableInstance> variableInstances;
   protected ExecutionState state;
   
   public abstract boolean isActivityInstance();

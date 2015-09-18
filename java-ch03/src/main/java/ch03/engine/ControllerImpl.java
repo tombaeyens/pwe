@@ -2,16 +2,20 @@ package ch03.engine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import ch03.data.TypedValue;
 import ch03.engine.operation.StartActivity;
-import ch03.engine.state.Created;
 import ch03.engine.state.Ended;
 import ch03.engine.state.ExecutionState;
+import ch03.engine.state.Starting;
 import ch03.engine.state.WaitingForMessage;
 import ch03.model.Activity;
 import ch03.model.ActivityInstance;
 import ch03.model.Scope;
 import ch03.model.ScopeInstance;
+import ch03.model.Timer;
+import ch03.model.TimerInstance;
 import ch03.model.Transition;
 import ch03.model.Workflow;
 import ch03.model.WorkflowInstance;
@@ -33,19 +37,26 @@ public class ControllerImpl implements Controller {
   /** starts the given scope */
   @Override
   public ActivityInstance startActivityInstance(Activity activity) {
-    return startActivityInstance(activity, engine.scopeInstance);
+    return startActivityInstance(activity, engine.scopeInstance, null);
   }
 
-  /** starts the given scope */
+  /** starts the given scope 
+   * @param activityStartData */
   @Override
   public ActivityInstance startActivityInstance(Activity activity, ScopeInstance parentScopeInstance) {
+    return startActivityInstance(activity, parentScopeInstance, null);
+  }
+
+  /** starts the given scope 
+   * @param activityStartData */
+  public ActivityInstance startActivityInstance(Activity activity, ScopeInstance parentScopeInstance, Map<String, TypedValue> activityStartData) {
     if (activity==null || !context.isConditionMet(activity.condition)) {
       return null;
     }
-    ActivityInstance activityInstance = engine.instantiateActivityInstance();
+    ActivityInstance activityInstance = new ActivityInstance();
     activityInstance.setScope(activity);
     activityInstance.setActivity(activity);
-    activityInstance.setState(new Created());
+    activityInstance.setState(Starting.INSTANCE);
     activityInstance.setParent(parentScopeInstance);
     parentScopeInstance.getActivityInstances().add(activityInstance);
 
@@ -55,7 +66,7 @@ public class ControllerImpl implements Controller {
             : "Create activity instance %s";
     log.debug(format, activityInstance, parentScopeInstance);
     
-    engine.addOperation(new StartActivity(activityInstance));
+    engine.addOperation(new StartActivity(activityInstance, activityStartData));
     return activityInstance;
   }
 
@@ -93,10 +104,12 @@ public class ControllerImpl implements Controller {
     endScopeInstance();
     List<ActivityInstance> activityInstances = new ArrayList<>();
     List<Transition> transitionsMeetingCondition = findTransitionsMeetingCondition(transitions);
-    for (Transition transitionMeetingCondition: transitionsMeetingCondition) {
-      ActivityInstance activityInstance = takeTransitionWithoutEndingScopeInstance(transitionMeetingCondition);
-      if (activityInstance!=null) {
-        activityInstances.add(activityInstance);
+    if (transitionsMeetingCondition!=null) {
+      for (Transition transitionMeetingCondition : transitionsMeetingCondition) {
+        ActivityInstance activityInstance = takeTransitionWithoutEndingScopeInstance(transitionMeetingCondition);
+        if (activityInstance != null) {
+          activityInstances.add(activityInstance);
+        }
       }
     }
     if (activityInstances.isEmpty()) {
@@ -207,6 +220,7 @@ public class ControllerImpl implements Controller {
     ScopeInstance scopeInstance = engine.scopeInstance;
     if (!scopeInstance.isEnded()) {
       scopeInstance.setState(new Ended());
+      engine.endScope();
       if (scopeInstance.isActivityInstance()) {
         log.debug("Ending activity instance %s", scopeInstance);
         persistence.activityInstanceEnded((ActivityInstance)scopeInstance);
@@ -217,11 +231,41 @@ public class ControllerImpl implements Controller {
     }
   }
 
-  
+  protected void initializeTimers() {
+    ScopeInstance scopeInstance = engine.getScopeInstance();
+    List<Timer> timers = scopeInstance.getScope().getTimers();
+    if (timers!=null) {
+      for (Timer timer : timers) {
+        createTimer(scopeInstance, timer);
+      }
+    }
+  }
+
+  @Override
+  public TimerInstance createTimer(ScopeInstance scopeInstance, Timer timer) {
+    return createTimer(scopeInstance, timer, false);
+  }
+
+  @Override
+  public TimerInstance createTimerInScope(ScopeInstance scopeInstance, Timer timer) {
+    return createTimer(scopeInstance, timer, true);
+  }
+
+  public TimerInstance createTimer(ScopeInstance scopeInstance, Timer timer, boolean isScopeTimer) {
+    TimerInstance timerInstance = new TimerInstance();
+    if (isScopeTimer) {
+      timerInstance.setScopeInstance(scopeInstance);
+    }
+    persistence.createTimerInstance(timerInstance);
+    return timerInstance;
+  }
+
+  public void cancelScopeTimers() {
+  }
+
   public EngineImpl getEngine() {
     return engine;
   }
-
   
   public void setEngine(EngineImpl engine) {
     this.engine = engine;

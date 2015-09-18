@@ -3,8 +3,6 @@ package ch03.taskservice;
 import java.util.ArrayList;
 import java.util.List;
 
-import ch03.engine.context.MapContext;
-
 
 /**
  * @author Tom Baeyens

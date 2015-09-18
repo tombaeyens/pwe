@@ -59,18 +59,16 @@ This section should describe the basics in similar style to the concepts section
     * Internal activities
     * External activities
     * Mixed: Sometimes activities combine functional behavior and control flow (eg all BPMN activities perform a fork at the end) 
+  * Variables
+  * Parameters
+  * Expressions
   * Advanced workflow concepts
     * Workflow templates  
     * Listeners
+  * Timers
+    * Scoped timers
+    * Unscoped timers --> need an id to be cancelled
 
-TODO: * Triggers
-  - take external data
-  - start the execution flow
-  - TODO link to activities (like BPMN start events) yet to be determined
-  - one or more triggers per workflow
-  - only one can be used to start one workflow instance
-  - worklfow can have a default trigger 
-  
 # Control flow
 
   * Control flow means defining the sequence in which activities have to be performed
@@ -102,7 +100,9 @@ TODO: * Triggers
     * Process concurrency is about the dependence or independency of 
       order activity execution
     * Static vs dynamic determination of concurrency
-  * Start logic
+  * Start activities
+    * Auto start activities static defined in workflow
+    * Dynamic start activities calculated by workflow based on start data.
   * Data availability interrupting control flow
   * Timers: control flow in the future
  
@@ -198,6 +198,8 @@ TODO: * Triggers
     * They are implemented like function calls with fixed names for inputs and outputs
     * During process authoring, inputs and outputs are bound to workflow variables  
 
+# Logging
+
 ---
 Other implementation details
 ----
@@ -217,6 +219,8 @@ Other implementation details
     
   * Logging
     * Activities should be able to add logging for debugging, runtime trouble shooting
+    
+  * Archiving activity instances?
 
   * Minimal workflow engine as an example
     * Tail recursion (call stack) vs atomic operations --> new minimal version (ch01.2) with atomic operations?

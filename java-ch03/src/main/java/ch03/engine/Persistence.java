@@ -7,6 +7,7 @@ import ch03.data.TypedValue;
 import ch03.engine.operation.Operation;
 import ch03.engine.state.ExecutionState;
 import ch03.model.ActivityInstance;
+import ch03.model.TimerInstance;
 import ch03.model.VariableInstance;
 import ch03.model.WorkflowInstance;
 
@@ -71,4 +72,7 @@ public interface Persistence {
   void workEnd(WorkflowInstance workflowInstance, List<ExternalAction> externalActions);
 
   void executionListenerRemove(int executionListenerIndex, ExternalAction externalAction);
+
+  void createTimerInstance(TimerInstance timerInstance);
+
 }

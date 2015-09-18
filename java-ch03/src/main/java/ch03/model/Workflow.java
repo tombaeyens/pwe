@@ -1,6 +1,5 @@
 package ch03.model;
 
-import java.util.List;
 import java.util.Map;
 
 import ch03.data.InputExpression;
@@ -21,33 +20,21 @@ public class Workflow extends Scope {
 
   protected boolean isStartAsynchronous;
   protected EngineFactory engineFactory;
-  protected List<Activity> startActivities = null;
   
   /** beware, when using a real asynchronizer, the returned workflow instance can be 
    * changed concurrently by asynchronous work.
    * A safe copy can be obtained only right before asynchronous work is started. */
   public WorkflowInstance start() {
-    return start(null, null);
+    return start(null);
   }
   
   public WorkflowInstance start(Map<String, TypedValue> startData) {
-    return start(startData, null);
-  }
-
-  public WorkflowInstance start(Map<String, TypedValue> startData, List<Activity> startActivities) {
     Engine engine = getEngineFactory().createEngine();
-    return engine.startWorkfowInstance(this, startData, startActivities);
+    WorkflowInstance workflowInstance = engine.startWorkflowInstance(this, startData);
+    engine.endWork();
+    return workflowInstance;
   }
   
-  public List<Activity> getStartActivities() {
-    if (this.startActivities==null) {
-      synchronized (this) {
-        this.startActivities = getActivitiesWithoutIncomingTransitions();
-      }
-    }
-    return startActivities;
-  }
-
   public void onwards(WorkflowInstance workflowInstance, Context context, Controller controller) {
     // TODO if there is one, continue super activity instance for 
     // which this workflow instance is is a sub worklflow instance
@@ -67,10 +54,6 @@ public class Workflow extends Scope {
     return true;
   }
 
-  public void setStartActivities(List<Activity> startActivities) {
-    this.startActivities = startActivities;
-  }
-
   public EngineFactory getEngineFactory() {
     if (engineFactory==null) {
       engineFactory = new EngineFactoryImpl();
@@ -85,6 +68,10 @@ public class Workflow extends Scope {
     this.engineFactory = engineFactory;
   }
 
+  public Workflow engineFactory(EngineFactory engineFactory) {
+    setEngineFactory(engineFactory);
+    return this;
+  }
   
   public boolean isStartAsynchronous() {
     return isStartAsynchronous;
@@ -101,44 +88,52 @@ public class Workflow extends Scope {
   }
   
   @Override
+  public Workflow id(String id) {
+    return (Workflow) super.id(id);
+  }
+
+  @Override
   public Workflow configurationValue(String key, Object value) {
-    super.configurationValue(key, value);
-    return this;
+    return (Workflow) super.configurationValue(key, value);
   }
 
   @Override
   public Workflow configurationTypedValue(String key, TypedValue typedValue) {
-    super.configurationTypedValue(key, typedValue);
-    return this;
+    return (Workflow) super.configurationTypedValue(key, typedValue);
   }
   
   @Override
   public Workflow inputParameter(String key, InputExpression inputExpression) {
-    super.inputParameter(key, inputExpression);
-    return this;
+    return (Workflow) super.inputParameter(key, inputExpression);
   }
 
   @Override
   public Workflow outputParameter(String key, OutputExpression outputExpression) {
-    super.outputParameter(key, outputExpression);
-    return this;
+    return (Workflow) super.outputParameter(key, outputExpression);
   }
 
   @Override
   public Workflow activity(Activity activity) {
-    super.activity(activity);
-    return this;
+    return (Workflow) super.activity(activity);
+  }
+
+  @Override
+  public Workflow autoStartActivity(Activity activity) {
+    return (Workflow) super.autoStartActivity(activity);
   }
 
   @Override
   public Workflow variable(Variable variable) {
-    super.variable(variable);
-    return this;
+    return (Workflow) super.variable(variable);
   }
 
   @Override
   public Workflow scopeListener(ScopeListener scopeListener) {
-    super.scopeListener(scopeListener);
-    return this;
+    return (Workflow) super.scopeListener(scopeListener);
+  }
+
+  @Override
+  public Workflow timer(Timer timer) {
+    return (Workflow) super.timer(timer);
   }
 }

@@ -11,29 +11,19 @@ import ch03.data.TypedValue;
 import ch03.engine.ContextImpl;
 import ch03.engine.ControllerImpl;
 import ch03.engine.ScopeListener;
-import ch03.util.ApiException;
 
 
 public abstract class Scope {
   
-  public String id;
-  public Map<String,TypedValue> configuration = null;
-  public Map<String,InputExpression> inputParameters = null;
-  public Map<String,OutputExpression> outputParameters = null;
-  public Map<String,Activity> activities = null;
-  public Map<String,Variable> variables = null;
-  public List<ScopeListener> scopeListeners = null;
-
-  public <T extends Activity> T add(String activityId, T activity) {
-    ApiException.checkNotNullParameter(activityId, "activityId");
-    ApiException.checkTrue(!activities.containsKey(activityId), "Scope '%s' already contains an activity with id '%s'", id, activityId);
-    ApiException.checkNotNullParameter(activity, "activity");
-    assert !activities.containsKey(activityId);
-    assert activity!=null;
-    activity.id = activityId;
-    activities.put(activityId, activity);
-    return activity;
-  }
+  protected String id;
+  protected Map<String,TypedValue> configuration;
+  protected Map<String,InputExpression> inputParameters;
+  protected Map<String,OutputExpression> outputParameters;
+  protected Map<String,Activity> activities;
+  protected List<Activity> autoStartActivities;
+  protected Map<String,Variable> variables;
+  protected List<ScopeListener> scopeListeners;
+  protected List<Timer> timers;
 
   public void flowEnded(
           ScopeInstance scopeInstance, 
@@ -49,18 +39,6 @@ public abstract class Scope {
   public abstract boolean isActivity();
   public abstract boolean isWorkflow();
 
-  public List<Activity> getActivitiesWithoutIncomingTransitions() {
-    List<Activity> startActivities = new ArrayList<>();
-    if (activities!=null) {
-      for (Activity activity : activities.values()) {
-        if (activity.incomingTransitions.isEmpty()) {
-          startActivities.add(activity);
-        }
-      }
-    }
-    return startActivities;
-  }
-
   public String getId() {
     return id;
   }
@@ -69,6 +47,10 @@ public abstract class Scope {
     this.id = id;
   }
 
+  public Scope id(String id) {
+    setId(id);
+    return this;
+  }
   
   public Map<String, TypedValue> getConfiguration() {
     return configuration;
@@ -87,7 +69,7 @@ public abstract class Scope {
   public Scope configurationTypedValue(String key, TypedValue typedValue) {
     assert key != null;
     if (configuration==null) {
-      configuration.put(key, typedValue);
+      configuration = new LinkedHashMap<>();
     }
     configuration.put(key, typedValue);
     return this;
@@ -133,25 +115,66 @@ public abstract class Scope {
     return activities;
   }
 
+  public List<Activity> findActivitiesWithoutIncomingTransitions() {
+    List<Activity> startActivities = new ArrayList<>();
+    if (activities!=null) {
+      for (Activity activity : activities.values()) {
+        if (activity.incomingTransitions.isEmpty()) {
+          startActivities.add(activity);
+        }
+      }
+    }
+    return startActivities;
+  }
   
+  public boolean hasActivity(String activityId) {
+    return activities!=null && activities.containsKey(activityId);
+  }
+
   public void setActivities(Map<String, Activity> activities) {
     this.activities = activities;
   }
-  
-  public Scope activity(Activity activity) {
+
+  public <T extends Activity> T addActivity(T activity) {
+    assert activity!=null;
     String activityId = activity.getId();
-    assert activityId != null;
+    assert activityId!=null;
+    assert !hasActivity(activityId);
     if (activities==null) {
       activities = new LinkedHashMap<>();
     }
     activities.put(activityId, activity);
+    return activity;
+  }
+
+  public Scope activity(Activity activity) {
+    addActivity(activity);
     return this;
   }
   
+
+  public List<Activity> getAutoStartActivities() {
+    return this.autoStartActivities;
+  }
+  public void setAutoStartActivities(List<Activity> autoStartActivities) {
+    this.autoStartActivities = autoStartActivities;
+  }
+  public Scope autoStartActivities(List<Activity> autoStartActivities) {
+    this.autoStartActivities = autoStartActivities;
+    return this;
+  }
+  public Scope autoStartActivity(Activity activity) {
+    activity(activity);
+    if (autoStartActivities==null) {
+      autoStartActivities = new ArrayList<>();
+    }
+    autoStartActivities.add(activity);
+    return this;
+  }
+
   public Map<String, Variable> getVariables() {
     return variables;
   }
-
   
   public void setVariables(Map<String, Variable> variables) {
     this.variables = variables;
@@ -184,4 +207,17 @@ public abstract class Scope {
     return this;
   }
   
+  public List<Timer> getTimers() {
+    return this.timers;
+  }
+  public void setTimers(List<Timer> timers) {
+    this.timers = timers;
+  }
+  public Scope timer(Timer timer) {
+    if (timers==null) {
+      timers = new ArrayList<>();
+    }
+    timers.add(timer);
+    return this;
+  }
 }

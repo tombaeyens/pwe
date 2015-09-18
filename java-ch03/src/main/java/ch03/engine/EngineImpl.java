@@ -8,11 +8,12 @@ import java.util.Map;
 import ch03.data.TypedValue;
 import ch03.engine.context.MapContext;
 import ch03.engine.operation.Operation;
-import ch03.engine.state.Starting;
+import ch03.engine.state.WaitingForActivities;
 import ch03.model.Activity;
 import ch03.model.ActivityInstance;
 import ch03.model.ScopeInstance;
-import ch03.model.VariableInstance;
+import ch03.model.Timer;
+import ch03.model.Variable;
 import ch03.model.Workflow;
 import ch03.model.WorkflowInstance;
 import ch03.util.Logger;
@@ -39,26 +40,21 @@ public class EngineImpl implements Engine {
   }
 
   @Override
-  public WorkflowInstance startWorkfowInstance(Workflow workflow) {
-    return startWorkfowInstance(workflow, null, null);
+  public WorkflowInstance startWorkflowInstance(Workflow workflow) {
+    return startWorkflowInstance(workflow, null);
   }
 
   @Override
-  public WorkflowInstance startWorkfowInstance(Workflow workflow, Map<String, TypedValue> startData) {
-    return startWorkfowInstance(workflow, startData, null);
-  }
-
-  @Override
-  public WorkflowInstance startWorkfowInstance(Workflow workflow, Map<String, TypedValue> startData, List<Activity> startActivities) {
-    WorkflowInstance workflowInstance = instantiateWorkflowInstance();
+  public WorkflowInstance startWorkflowInstance(Workflow workflow, Map<String, TypedValue> startData) {
+    assert workflow!=null;
+    WorkflowInstance workflowInstance = new WorkflowInstance();
     workflowInstance.setEngine(this);
     workflowInstance.setWorkflow(workflow);
     workflowInstance.setScope(workflow);
-    workflowInstance.setState(new Starting());
     persistence.workStartWorkflowInstance(workflowInstance);
     log.debug("Created workflow instance %s", workflowInstance);
     setScopeInstance(workflowInstance);
-    enterScope();
+    startScope();
     // applying the start data
     if (startData!=null && !startData.isEmpty()) {
       if (workflow.getInputParameters()!=null) {
@@ -73,13 +69,10 @@ public class EngineImpl implements Engine {
       }
     }
     // if there are no client specified start activities...
-    if (startActivities==null) {
-      // take the start activities defined by the workflow
-      startActivities = workflow.getStartActivities();
-    }
-    List<ActivityInstance> activityInstances = controller.startActivityInstances(startActivities);
-    if (activityInstances.isEmpty()) {
-      controller.endScopeInstance();
+    List<Activity> autoStartActivities = workflow.getAutoStartActivities();
+    if (autoStartActivities!=null && !autoStartActivities.isEmpty()) {
+      workflowInstance.setState(WaitingForActivities.INSTANCE);
+      controller.startActivityInstances(autoStartActivities);
     }
     executeOperations();
     return workflowInstance;
@@ -90,22 +83,48 @@ public class EngineImpl implements Engine {
   }
 
   public WorkflowInstance message(ActivityInstance activityInstance, Map<String,TypedValue> messageData) {
-    activityInstance.getWorkflowInstance().setEngine(this);
+    assert activityInstance!=null;
+    WorkflowInstance workflowInstance = activityInstance.getWorkflowInstance();
+    workflowInstance.setEngine(this);
     setScopeInstance(activityInstance);
     persistence.workStartHandleMessage(activityInstance, messageData);
     activityInstance.getActivity().message(activityInstance, context, controller, messageData);
     executeOperations();
-    return activityInstance.getWorkflowInstance();
+    return workflowInstance;
   }
   
-  public void enterScope() {
+  public void startScope() {
     context.initializeVariables();
+    controller.initializeTimers();
+    notifyScopeListenersStart();
   }
 
-  public void leaveScope() {
-    // TODO cancel timers
+  public void endScope() {
+    notifyScopeListenersEnd();
+    controller.cancelScopeTimers();
   }
-  
+
+  protected void notifyScopeListenersStart() {
+    List<ScopeListener> scopeListeners = scopeInstance.getScope().getScopeListeners();
+    if (scopeListeners!=null) {
+      for (ScopeListener scopeListener : scopeListeners) {
+        scopeListener.scopeStarting(scopeInstance);
+      }
+    }
+  }
+
+  protected void notifyScopeListenersEnd() {
+    List<ScopeListener> scopeListeners = scopeInstance.getScope().getScopeListeners();
+    if (scopeListeners!=null) {
+      for (ScopeListener scopeListener : scopeListeners) {
+        scopeListener.scopeEnding(scopeInstance);
+      }
+    }
+  }
+
+  protected void cancelTimers() {
+  }
+
   public void addOperation(Operation operation) {
     operations.add(operation);
     persistence.operationSynchronousAdded(operation);
@@ -124,9 +143,20 @@ public class EngineImpl implements Engine {
       this.scopeInstance = current.getScopeInstance();
       current.perform(this, context, controller);
     }
+  }
+  
 
+  @Override
+  public void endWork() {
+    // If no activities were started...
     WorkflowInstance workflowInstance = scopeInstance.getWorkflowInstance();
-
+    List<ActivityInstance> activityInstances = workflowInstance.getActivityInstances();
+    if (!workflowInstance.isEnded() && activityInstances.isEmpty()) {
+      // close the workflow instance
+      setScopeInstance(workflowInstance);
+      controller.endScopeInstance();
+    }
+    
     // No more work to be done
     // Ensure the persistence is updated so that incoming requests
     // will find the new state
@@ -137,7 +167,7 @@ public class EngineImpl implements Engine {
       // Perform all notifications to external services
       ArrayList<ExternalAction> externalActionsCopy = new ArrayList<>(externalActions);
       externalActions = null;
-      if (externalActions != null) {
+      if (externalActionsCopy != null) {
         // the next loop could be performed async in parallel...
         for (int i = 0; i < externalActionsCopy.size(); i++) {
           ExternalAction externalAction = externalActionsCopy.get(i);
@@ -148,9 +178,22 @@ public class EngineImpl implements Engine {
     }
   }
 
+  @Override
+  public WorkflowInstance startActivityInstance(ScopeInstance parentScopeInstance, Activity activity, Map<String, TypedValue> activityStartData) {
+    controller.startActivityInstance(activity, parentScopeInstance, activityStartData);
+    return null;
+  }
+
+  @Override
+  public WorkflowInstance endScopeInstance(ScopeInstance scopeInstance) {
+    return null;
+  }
+
   /** Resumes a crashed workflow instance after being restored 
    * from persistence. */  
-  public void resume() {
+  @Override
+  public void resume(WorkflowInstance workflowInstance, LinkedList<Operation> operations) {
+    this.operations = operations;
     executeOperations();
   }
   
@@ -165,18 +208,6 @@ public class EngineImpl implements Engine {
   /** moves the position of the execution up one level to the parent of the current scopeInstance */
   public void up() {
     scopeInstance = scopeInstance.getParent();
-  }
-
-  public WorkflowInstance instantiateWorkflowInstance() {
-    return new WorkflowInstance();
-  }
-
-  protected ActivityInstance instantiateActivityInstance() {
-    return new ActivityInstance();
-  }
-
-  protected VariableInstance instantiateVariableInstance() {
-    return new VariableInstance();
   }
 
   public ScopeInstance getScopeInstance() {

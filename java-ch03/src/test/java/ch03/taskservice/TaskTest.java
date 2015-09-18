@@ -27,10 +27,11 @@ public class TaskTest {
     EngineFactoryImpl engineFactory = new EngineFactoryImpl();
     engineFactory.setExternalContext(externalContext);
 
-    Workflow workflow = new Workflow();
-    workflow.setEngineFactory(engineFactory);
-    workflow.add("task", new TaskActivity()
-      .configurationValue("title", "Fix bug 287346"));
+    Workflow workflow = new Workflow()
+      .engineFactory(engineFactory)
+      .autoStartActivity(new TaskActivity()
+        .id("task")
+        .configurationValue("title", "Fix bug 287346"));
 
     WorkflowInstance workflowInstance = workflow.start();
 

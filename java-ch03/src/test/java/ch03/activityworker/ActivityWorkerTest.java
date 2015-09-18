@@ -28,9 +28,12 @@ public class ActivityWorkerTest {
     EngineFactoryImpl engineFactory = new EngineFactoryImpl();
     engineFactory.setExternalContext(externalContext);
 
-    Workflow workflow = new Workflow();
-    workflow.setEngineFactory(engineFactory);
-    workflow.add("external", new ActivityWorkerActivity());
+    // @formatter:off
+    Workflow workflow = new Workflow()
+      .engineFactory(engineFactory)
+      .autoStartActivity(new ActivityWorkerActivity()
+         .id("external"));
+    // @formatter:on
 
     WorkflowInstance workflowInstance = workflow.start();
 

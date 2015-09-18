@@ -125,7 +125,7 @@ public class ContextImpl implements Context {
   @Override
   public List<Transition> getOutgoingTransitionsMeetingCondition() {
     Activity activity = (Activity) engine.getScopeInstance().getScope();
-    if (activity.outgoingTransitions.isEmpty()) {
+    if (activity.hasOutgoingTransitions()) {
       return activity.outgoingTransitions;
     }
     List<Transition> outgoingTransitionsMeetingCondition = new ArrayList<>();
@@ -141,10 +141,12 @@ public class ContextImpl implements Context {
   public Map<String,TypedValue> readInputs() {
     Map<String,TypedValue> inputs = new LinkedHashMap<>();
     Map<String,InputExpression> inputParameters = engine.getScopeInstance().getScope().getInputParameters();
-    for (String key: inputParameters.keySet()) {
-      InputExpression inputExpression = inputParameters.get(key);
-      TypedValue typedValue = inputExpression.getTypedValue(this);
-      inputs.put(key, typedValue);
+    if (inputParameters!=null) {
+      for (String key : inputParameters.keySet()) {
+        InputExpression inputExpression = inputParameters.get(key);
+        TypedValue typedValue = inputExpression.getTypedValue(this);
+        inputs.put(key, typedValue);
+      }
     }
     return inputs;
   }
@@ -153,14 +155,16 @@ public class ContextImpl implements Context {
   public void writeOutputs(Map<String,TypedValue> outputs) {
     ScopeInstance scopeInstance = engine.getScopeInstance();
     Map<String,OutputExpression> outputParameters = scopeInstance.getScope().getOutputParameters();
-    for (String key: outputParameters.keySet()) {
-      TypedValue typedValue = outputs.get(key);
-      OutputExpression outputExpression = outputParameters.get(key);
-      if (outputExpression!=null) {
-        outputExpression.setTypedValue(this, typedValue);
-      } else {
-        VariableInstance variableInstance = scopeInstance.findVariableInstanceByVariableIdRecursive(key);
-        setVariableInstance(variableInstance, typedValue);
+    if (outputParameters!=null) {
+      for (String key : outputParameters.keySet()) {
+        TypedValue typedValue = outputs.get(key);
+        OutputExpression outputExpression = outputParameters.get(key);
+        if (outputExpression != null) {
+          outputExpression.setTypedValue(this, typedValue);
+        } else {
+          VariableInstance variableInstance = scopeInstance.findVariableInstanceByVariableIdRecursive(key);
+          setVariableInstance(variableInstance, typedValue);
+        }
       }
     }
   }
@@ -232,7 +236,7 @@ public class ContextImpl implements Context {
   }
 
   protected VariableInstance createVariableInstance(ScopeInstance scopeInstance, Variable variable, String variableId, TypedValue initialValue) {
-    VariableInstance variableInstance = engine.instantiateVariableInstance();
+    VariableInstance variableInstance = new VariableInstance();
     variableInstance.setVariable(variable);
     variableInstance.setScopeInstance(scopeInstance);
     variableInstance.setTypedValue(initialValue);

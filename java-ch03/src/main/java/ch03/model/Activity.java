@@ -19,17 +19,8 @@ public class Activity extends Scope {
 
   public Condition condition;
   public Scope parent;
-  public List<Transition> incomingTransitions = new ArrayList<>();
-  public List<Transition> outgoingTransitions = new ArrayList<>();
-  
-  public Transition createTransitionTo(Activity destination) {
-    Transition transition = new Transition();
-    transition.from = this;
-    transition.from.outgoingTransitions.add(transition);
-    transition.to = destination;
-    transition.to.incomingTransitions.add(transition);
-    return transition;
-  }
+  public List<Transition> incomingTransitions;
+  public List<Transition> outgoingTransitions;
   
   /** @param activityInstance is part of the read-only data structure representing the workflow instance.
    * @param context provides read/write access to variables, read access to configuration and external context.
@@ -55,57 +46,28 @@ public class Activity extends Scope {
   public String toString() {
     return "["+id+"|"+getTypeName()+"]"; 
   }
-
-  @Override
-  public boolean isActivity() {
-    return true;
-  }
-
-  @Override
-  public boolean isWorkflow() {
-    return false;
+  
+  public Transition createTransitionTo(Activity destination) {
+    Transition transition = new Transition();
+    transition.from = this;
+    transition.from.addOutgoingTransition(transition);
+    transition.to = destination;
+    transition.to.addIncomingTransition(transition);
+    return transition;
   }
   
-  @Override
-  public Activity configurationValue(String key, Object value) {
-    super.configurationValue(key, value);
-    return this;
+  private void addIncomingTransition(Transition transition) {
+    if (incomingTransitions==null) {
+      incomingTransitions = new ArrayList<>();
+    }
+    incomingTransitions.add(transition);
   }
 
-  @Override
-  public Activity configurationTypedValue(String key, TypedValue typedValue) {
-    super.configurationTypedValue(key, typedValue);
-    return this;
-  }
-  
-  @Override
-  public Activity inputParameter(String key, InputExpression inputExpression) {
-    super.inputParameter(key, inputExpression);
-    return this;
-  }
-
-  @Override
-  public Activity outputParameter(String key, OutputExpression outputExpression) {
-    super.outputParameter(key, outputExpression);
-    return this;
-  }
-
-  @Override
-  public Activity activity(Activity activity) {
-    super.activity(activity);
-    return this;
-  }
-
-  @Override
-  public Activity variable(Variable variable) {
-    super.variable(variable);
-    return this;
-  }
-
-  @Override
-  public Activity scopeListener(ScopeListener scopeListener) {
-    super.scopeListener(scopeListener);
-    return this;
+  private void addOutgoingTransition(Transition transition) {
+    if (outgoingTransitions==null) {
+      outgoingTransitions = new ArrayList<>();
+    }
+    outgoingTransitions.add(transition);
   }
 
   public Condition getCondition() {
@@ -144,5 +106,69 @@ public class Activity extends Scope {
   
   public void setOutgoingTransitions(List<Transition> outgoingTransitions) {
     this.outgoingTransitions = outgoingTransitions;
+  }
+
+  public boolean hasOutgoingTransitions() {
+    return outgoingTransitions!=null && !outgoingTransitions.isEmpty();
+  }
+
+  @Override
+  public boolean isActivity() {
+    return true;
+  }
+
+  @Override
+  public boolean isWorkflow() {
+    return false;
+  }
+  
+  @Override
+  public Activity id(String id) {
+    return (Activity) super.id(id);
+  }
+
+  @Override
+  public Activity configurationValue(String key, Object value) {
+    return (Activity) super.configurationValue(key, value);
+  }
+
+  @Override
+  public Activity configurationTypedValue(String key, TypedValue typedValue) {
+    return (Activity) super.configurationTypedValue(key, typedValue);
+  }
+  
+  @Override
+  public Activity inputParameter(String key, InputExpression inputExpression) {
+    return (Activity) super.inputParameter(key, inputExpression);
+  }
+
+  @Override
+  public Activity outputParameter(String key, OutputExpression outputExpression) {
+    return (Activity) super.outputParameter(key, outputExpression);
+  }
+
+  @Override
+  public Activity activity(Activity activity) {
+    return (Activity) super.activity(activity);
+  }
+
+  @Override
+  public Activity autoStartActivity(Activity activity) {
+    return (Activity) super.autoStartActivity(activity);
+  }
+
+  @Override
+  public Activity variable(Variable variable) {
+    return (Activity) super.variable(variable);
+  }
+
+  @Override
+  public Activity scopeListener(ScopeListener scopeListener) {
+    return (Activity) super.scopeListener(scopeListener);
+  }
+
+  @Override
+  public Activity timer(Timer timer) {
+    return (Activity) super.timer(timer);
   }
 }
