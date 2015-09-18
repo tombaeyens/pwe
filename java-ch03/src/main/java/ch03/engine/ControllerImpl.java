@@ -14,8 +14,6 @@ import ch03.model.Activity;
 import ch03.model.ActivityInstance;
 import ch03.model.Scope;
 import ch03.model.ScopeInstance;
-import ch03.model.Timer;
-import ch03.model.TimerInstance;
 import ch03.model.Transition;
 import ch03.model.Workflow;
 import ch03.model.WorkflowInstance;
@@ -58,7 +56,7 @@ public class ControllerImpl implements Controller {
     activityInstance.setActivity(activity);
     activityInstance.setState(Starting.INSTANCE);
     activityInstance.setParent(parentScopeInstance);
-    parentScopeInstance.getActivityInstances().add(activityInstance);
+    parentScopeInstance.addActivityInstance(activityInstance);
 
     persistence.activityInstanceCreated(activityInstance);
     String format = parentScopeInstance.isActivityInstance() 
@@ -229,38 +227,6 @@ public class ControllerImpl implements Controller {
         persistence.workflowInstanceEnded((WorkflowInstance)scopeInstance);
       }
     }
-  }
-
-  protected void initializeTimers() {
-    ScopeInstance scopeInstance = engine.getScopeInstance();
-    List<Timer> timers = scopeInstance.getScope().getTimers();
-    if (timers!=null) {
-      for (Timer timer : timers) {
-        createTimer(scopeInstance, timer);
-      }
-    }
-  }
-
-  @Override
-  public TimerInstance createTimer(ScopeInstance scopeInstance, Timer timer) {
-    return createTimer(scopeInstance, timer, false);
-  }
-
-  @Override
-  public TimerInstance createTimerInScope(ScopeInstance scopeInstance, Timer timer) {
-    return createTimer(scopeInstance, timer, true);
-  }
-
-  public TimerInstance createTimer(ScopeInstance scopeInstance, Timer timer, boolean isScopeTimer) {
-    TimerInstance timerInstance = new TimerInstance();
-    if (isScopeTimer) {
-      timerInstance.setScopeInstance(scopeInstance);
-    }
-    persistence.createTimerInstance(timerInstance);
-    return timerInstance;
-  }
-
-  public void cancelScopeTimers() {
   }
 
   public EngineImpl getEngine() {

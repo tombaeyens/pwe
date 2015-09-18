@@ -12,8 +12,6 @@ import ch03.engine.state.WaitingForActivities;
 import ch03.model.Activity;
 import ch03.model.ActivityInstance;
 import ch03.model.ScopeInstance;
-import ch03.model.Timer;
-import ch03.model.Variable;
 import ch03.model.Workflow;
 import ch03.model.WorkflowInstance;
 import ch03.util.Logger;
@@ -27,6 +25,7 @@ import ch03.util.LoggerFactory;
 public class EngineImpl implements Engine {
   
   public static final Logger log = LoggerFactory.getLogger(EngineImpl.class);
+
   
   ScopeInstance scopeInstance;
   LinkedList<Operation> operations = new LinkedList<>();
@@ -95,34 +94,23 @@ public class EngineImpl implements Engine {
   
   public void startScope() {
     context.initializeVariables();
-    controller.initializeTimers();
-    notifyScopeListenersStart();
+    notifyListeners(Listener.START);
   }
 
   public void endScope() {
-    notifyScopeListenersEnd();
-    controller.cancelScopeTimers();
+    notifyListeners(Listener.END);
   }
 
-  protected void notifyScopeListenersStart() {
-    List<ScopeListener> scopeListeners = scopeInstance.getScope().getScopeListeners();
-    if (scopeListeners!=null) {
-      for (ScopeListener scopeListener : scopeListeners) {
-        scopeListener.scopeStarting(scopeInstance);
+  protected void notifyListeners(String eventName) {
+    Map<String,List<Listener>> listeners = scopeInstance.getScope().getScopeListeners();
+    if (listeners!=null) {
+      List<Listener> eventListeners = listeners.get(eventName);
+      if (eventListeners!=null) {
+        for (Listener listener : eventListeners) {
+          listener.execute(scopeInstance, context);
+        }
       }
     }
-  }
-
-  protected void notifyScopeListenersEnd() {
-    List<ScopeListener> scopeListeners = scopeInstance.getScope().getScopeListeners();
-    if (scopeListeners!=null) {
-      for (ScopeListener scopeListener : scopeListeners) {
-        scopeListener.scopeEnding(scopeInstance);
-      }
-    }
-  }
-
-  protected void cancelTimers() {
   }
 
   public void addOperation(Operation operation) {
@@ -150,8 +138,7 @@ public class EngineImpl implements Engine {
   public void endWork() {
     // If no activities were started...
     WorkflowInstance workflowInstance = scopeInstance.getWorkflowInstance();
-    List<ActivityInstance> activityInstances = workflowInstance.getActivityInstances();
-    if (!workflowInstance.isEnded() && activityInstances.isEmpty()) {
+    if (!workflowInstance.isEnded() && !workflowInstance.hasActivityInstances()) {
       // close the workflow instance
       setScopeInstance(workflowInstance);
       controller.endScopeInstance();

@@ -136,11 +136,16 @@ public class ContextImpl implements Context {
     }
     return outgoingTransitionsMeetingCondition;
   }
-  
+
   @Override
   public Map<String,TypedValue> readInputs() {
-    Map<String,TypedValue> inputs = new LinkedHashMap<>();
     Map<String,InputExpression> inputParameters = engine.getScopeInstance().getScope().getInputParameters();
+    return readInputs(inputParameters);
+  }
+
+  @Override
+  public Map<String,TypedValue> readInputs(Map<String,InputExpression> inputParameters) {
+    Map<String,TypedValue> inputs = new LinkedHashMap<>();
     if (inputParameters!=null) {
       for (String key : inputParameters.keySet()) {
         InputExpression inputExpression = inputParameters.get(key);
@@ -240,7 +245,7 @@ public class ContextImpl implements Context {
     variableInstance.setVariable(variable);
     variableInstance.setScopeInstance(scopeInstance);
     variableInstance.setTypedValue(initialValue);
-    scopeInstance.getVariableInstances().put(variableId, variableInstance);
+    scopeInstance.addVariableInstance(variableId, variableInstance);
     engine.getPersistence().variableInstanceCreated(variableInstance);
     if (variable!=null) {
       log.debug("Created variable instance  [%s|%s] : %s", variableInstance.getId(), variable.getId(), variable.getType());

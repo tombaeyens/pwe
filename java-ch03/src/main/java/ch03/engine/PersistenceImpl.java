@@ -11,6 +11,7 @@ import ch03.model.ActivityInstance;
 import ch03.model.ScopeInstance;
 import ch03.model.VariableInstance;
 import ch03.model.WorkflowInstance;
+import ch03.timers.Timer;
 import ch03.util.Logger;
 
 
@@ -146,4 +147,5 @@ public class PersistenceImpl implements Persistence {
   public void executionListenerRemove(int executionListenerIndex, ExternalAction externalAction) {
     addUpdate("Remove execution listener "+executionListenerIndex+" ("+externalAction+")");
   }
+
 }

@@ -1,6 +1,7 @@
 package ch03.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +11,8 @@ import ch03.data.OutputExpression;
 import ch03.data.TypedValue;
 import ch03.engine.ContextImpl;
 import ch03.engine.ControllerImpl;
-import ch03.engine.ScopeListener;
+import ch03.engine.Listener;
+import ch03.timers.Timer;
 
 
 public abstract class Scope {
@@ -22,7 +24,7 @@ public abstract class Scope {
   protected Map<String,Activity> activities;
   protected List<Activity> autoStartActivities;
   protected Map<String,Variable> variables;
-  protected List<ScopeListener> scopeListeners;
+  protected Map<String,List<Listener>> listeners;
   protected List<Timer> timers;
 
   public void flowEnded(
@@ -190,20 +192,26 @@ public abstract class Scope {
     return this;
   }
   
-  public List<ScopeListener> getScopeListeners() {
-    return scopeListeners;
+  public Map<String,List<Listener>> getScopeListeners() {
+    return listeners;
   }
 
-  public void setScopeListeners(List<ScopeListener> scopeListeners) {
-    this.scopeListeners = scopeListeners;
+  public void setScopeListeners(Map<String,List<Listener>> listeners) {
+    this.listeners = listeners;
   }
   
-  public Scope scopeListener(ScopeListener scopeListener) {
-    assert scopeListener != null;
-    if (scopeListeners==null) {
-      scopeListeners = new ArrayList<>();
+  public Scope listener(String eventName, Listener listener) {
+    assert eventName != null;
+    assert listener != null;
+    if (listeners==null) {
+      listeners = new HashMap<>();
     }
-    scopeListeners.add(scopeListener);
+    List<Listener> eventListeners = listeners.get(eventName);
+    if (eventListeners==null) {
+      eventListeners = new ArrayList<>();
+      listeners.put(eventName, eventListeners);
+    }
+    eventListeners.add(listener);
     return this;
   }
   

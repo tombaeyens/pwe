@@ -30,6 +30,7 @@ public interface Context {
   void setTypedValue(String key, TypedValue value);
 
   Map<String,TypedValue> readInputs();
+  Map<String,TypedValue> readInputs(Map<String,InputExpression> inputParameters);
   void writeOutputs(Map<String,TypedValue> outputs);
 
   boolean isConditionMet(Condition condition);

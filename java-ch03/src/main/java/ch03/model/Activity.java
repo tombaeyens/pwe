@@ -10,7 +10,8 @@ import ch03.data.OutputExpression;
 import ch03.data.TypedValue;
 import ch03.engine.Context;
 import ch03.engine.Controller;
-import ch03.engine.ScopeListener;
+import ch03.engine.Listener;
+import ch03.timers.Timer;
 
 /**
  * @author Tom Baeyens
@@ -163,8 +164,8 @@ public class Activity extends Scope {
   }
 
   @Override
-  public Activity scopeListener(ScopeListener scopeListener) {
-    return (Activity) super.scopeListener(scopeListener);
+  public Activity listener(String eventName, Listener listener) {
+    return (Activity) super.listener(eventName, listener);
   }
 
   @Override

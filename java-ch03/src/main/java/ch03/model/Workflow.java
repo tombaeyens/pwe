@@ -10,7 +10,8 @@ import ch03.engine.Controller;
 import ch03.engine.Engine;
 import ch03.engine.EngineFactory;
 import ch03.engine.EngineFactoryImpl;
-import ch03.engine.ScopeListener;
+import ch03.engine.Listener;
+import ch03.timers.Timer;
 
 
 /**
@@ -128,8 +129,8 @@ public class Workflow extends Scope {
   }
 
   @Override
-  public Workflow scopeListener(ScopeListener scopeListener) {
-    return (Workflow) super.scopeListener(scopeListener);
+  public Workflow listener(String eventName, Listener listener) {
+    return (Workflow) super.listener(eventName, listener);
   }
 
   @Override
