@@ -1,8 +1,5 @@
 package ch03.timers;
 
-import java.util.Map;
-
-import ch03.data.TypedValue;
 import ch03.model.ScopeInstance;
 
 
@@ -13,7 +10,7 @@ public class Timer {
 
   protected String name;
   protected ScopeInstance scopeInstance;
-  protected Map<String,TypedValue> inputs;
+  protected TimerHandler timerHandler;
   protected String time;
   protected boolean cancelOnScopeEnd;
 
@@ -24,14 +21,13 @@ public class Timer {
     this.scopeInstance = scopeInstance;
   }
   
-  public Map<String, TypedValue> getInputs() {
-    return inputs;
+  public TimerHandler getTimerHandler() {
+    return timerHandler;
   }
   
-  public void setInputs(Map<String, TypedValue> inputs) {
-    this.inputs = inputs;
+  public void setTimerHandler(TimerHandler timerHandler) {
+    this.timerHandler = timerHandler;
   }
-  
   public String getTime() {
     return time;
   }

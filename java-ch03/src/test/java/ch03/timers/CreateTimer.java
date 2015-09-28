@@ -15,29 +15,23 @@ import ch03.model.ScopeInstance;
 public class CreateTimer implements Listener {
   
   protected String name;
-  protected boolean cancelOnScopeEnd;
   protected Map<String,InputExpression> inputParameters;
 
   @Override
   public void execute(ScopeInstance scopeInstance, Context context) {
     TimerService timerService = context.getExternal(TimerService.class);
 
+    TimerHandler timerHandler = instantiateTimerHandler();
+    timerHandler.setInputs(context.readInputs(inputParameters));
+
     Timer timer = new Timer();
     timer.setName(name);
-    timer.setCancelOnScopeEnd(cancelOnScopeEnd);
-    timer.setInputs(context.readInputs(inputParameters));
+    timer.setTimerHandler(timerHandler);
     timerService.createTimer(timer);
   }
 
-  public boolean getCancelOnScopeEnd() {
-    return this.cancelOnScopeEnd;
-  }
-  public void setCancelOnScopeEnd(boolean cancelOnScopeEnd) {
-    this.cancelOnScopeEnd = cancelOnScopeEnd;
-  }
-  public CreateTimer cancelOnScopeEnd(boolean cancelOnScopeEnd) {
-    this.cancelOnScopeEnd = cancelOnScopeEnd;
-    return this;
+  protected TimerHandler instantiateTimerHandler() {
+    return new TimerHandler();
   }
 
   public String getName() {
@@ -55,7 +49,6 @@ public class CreateTimer implements Listener {
     return inputParameters;
   }
 
-  
   public void setInputParameters(Map<String, InputExpression> inputParameters) {
     this.inputParameters = inputParameters;
   }
